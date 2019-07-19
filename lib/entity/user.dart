@@ -1,4 +1,4 @@
 class User {
-  String photoUrl;
+  String nickname;
   String uuid;
 }

@@ -4,7 +4,7 @@ import 'package:oshid_list_v1/view/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'entity/user.dart';
-import 'model/auth/loginPage.dart';
+import 'package:oshid_list_v1/view/loginPage.dart';
 
 void main() {
   runApp(MyApp());
@@ -30,7 +30,6 @@ class _MyAppState extends State<MyApp> {
       preferences = pref;
       setState(() {
         user.uuid = preferences.getString('uuid');
-        user.photoUrl = preferences.getString('photoUrl');
       });
 
       if (user.uuid == null) {
@@ -48,7 +47,7 @@ class _MyAppState extends State<MyApp> {
       home: _defaultHome,
       routes: <String, WidgetBuilder> {
         '/home': (BuildContext context) => MyHomePage(),
-        
+
       },
     );
   }

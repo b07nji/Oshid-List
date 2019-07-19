@@ -47,7 +47,6 @@ class OnegaiFormState extends State<OnegaiForm> {
       preferences = pref;
       setState(() {
         user.uuid = preferences.getString('uuid');
-        user.photoUrl = preferences.getString('photoUrl');
       });
 
     });

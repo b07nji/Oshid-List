@@ -34,7 +34,6 @@ class _MyHomePageState extends State<MyHomePage> {
       preferences = pref;
       setState(() {
         user.uuid = preferences.getString('uuid');
-        user.photoUrl = preferences.getString('photoUrl');
       });
     });
   }
