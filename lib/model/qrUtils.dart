@@ -2,9 +2,15 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import 'auth/authentication.dart';
+
 class QRUtils {
+
+  final auth = Authentication();
+//  var uuid = auth.getUuid().toString();
+
   var qr = QrImage(
-    data: "1234567890",
+    data: "test",
     size: 200.0,
   );
 

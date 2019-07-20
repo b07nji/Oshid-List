@@ -13,7 +13,6 @@ import 'onegaiPage.dart';
 final _onegaiReference = Firestore.instance.collection('onegai');
 final _userReference = Firestore.instance.collection('users');
 final user = User();
-String strDeepLink = 'deepLink is null';
 final qr = QRUtils();
 
 class MyHomePage extends StatefulWidget {
@@ -58,18 +57,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       width: 220,
                       child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                     ),
-//                    Container(
-//                      alignment: Alignment.topRight,
-//                      height: 50,
-//                      width: 50,
-//                      decoration: BoxDecoration(
-//                          shape: BoxShape.circle,
-//                          image: DecorationImage(
-//                              fit: BoxFit.fill,
-////                              image: user.photoUrl != null ? NetworkImage(user.photoUrl) : NetworkImage("https://lh4.googleusercontent.com/-VmebVOAhP1E/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rcWhQSey8f3-8xa3CbS7BQx4dnJHA/s1337/photo.jpg")
-//                          )
-//                      ),
-//                    )
                   ],
                 ),
                 decoration: BoxDecoration(
@@ -95,11 +82,6 @@ class _MyHomePageState extends State<MyHomePage> {
             Container(
               child: Text('ログアウトする'),
             ),
-
-            Container(
-              child: Text(strDeepLink),
-            )
-
           ],
         ),
       ),
