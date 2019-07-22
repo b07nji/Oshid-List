@@ -69,14 +69,39 @@ class _MyHomePageState extends State<MyHomePage> {
               child: RaisedButton(
                 child: Text('パートナーと繋がる'),
                 onPressed: () {
-                  qr.readQr();
-                  print("readQr() is called");
+                  qr.readQr().then((partnerId) {
+                    /**
+                     * TODO
+                     */
+                    _onegaiReference.where('owerRef', isEqualTo: _userReference.document(partnerId)).snapshots()
+                            .forEach((value) {
+                              String test;
+
+                              value.documents.map((v) {
+                                test = v.data.containsKey('name').toString();
+                              });
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              title: Text('パートナーと繋がる'),
+                              children: <Widget>[
+                                SimpleDialogOption(
+                                  //onPressed: ,
+                                  child: Text(test + ': ' + partnerId),
+                                )
+                              ],
+                            );
+                          }
+                      );
+                    });
+                  });
                 },
               ),
             ),
 
             Container(
-              child: qr.qr,
+              child: qr.generateQr(user.uuid),
             ),
 
             Container(
