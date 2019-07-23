@@ -13,10 +13,19 @@ class Authentication {
 
   }
 
+  void savePartnerInfo(String partnerId) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setString('partnerId', partnerId);
+  }
+
   Future<String> getUuid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return (prefs.getString('uuid') ?? null);
+  }
 
+  Future<String> getPartnerId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return (prefs.getString('uuid') ?? null);
   }
 }
 
