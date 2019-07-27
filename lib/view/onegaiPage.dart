@@ -74,7 +74,7 @@ class OnegaiFormState extends State<OnegaiForm> {
           children: <Widget>[
             TextFormField(
               validator: (value) {
-                if (value.isEmpty) return 'おねがいを入れてね';
+                if (value.isEmpty) return "おねがいを入れてね";
               },
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
@@ -96,6 +96,10 @@ class OnegaiFormState extends State<OnegaiForm> {
                       pressAttention2 = false;
                       pressAttention3 = false;
                     });
+
+                    /**
+                     * TODO:
+                     */
                   },
                   child: Text('パートナー')
                 ),
