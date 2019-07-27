@@ -98,6 +98,7 @@ class _MyHomePageState extends State<MyHomePage>
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
+                        //aaaaaaaaa
                         auth.savePartnerInfo(partnerId);
                         user.partnerId = partnerId;
 
