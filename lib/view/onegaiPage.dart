@@ -158,7 +158,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                           'content': _onegai.content,
                           'dueDate': _onegai.dueDate,
                           'status': false,
-                          'owerRef': _userReference.document(user.uuid)
+                          'owerRef': _userReference.document()
 
                         }
                     ).then((docRef) {
