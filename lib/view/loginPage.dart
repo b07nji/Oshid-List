@@ -69,21 +69,31 @@ class _LoginPageState extends State<LoginPage> {
                       user.uuid = uuid.v1();
                       print(user.uuid);
                       //2. add nick name to firebase db
-                      _userReference.document(user.uuid).snapshots().listen((
-                            snapshot) {
-                          //TODO: uidをドキュメントIDにしてるけどええんか？
-                          _userReference.document(user.uuid).setData(
-                              {
-                                'uudi': user.uuid,
-                                'name': user.nickname
-                              }
-                          );
-                          /**
-                           * home画面へ
-                           */
-                          Navigator.of(context).pushReplacementNamed('/home');
-                        });
+//                      _userReference.document(user.uuid).snapshots().listen((
+//                            snapshot) {
+//                          //TODO: uidをドキュメントIDにしてるけどええんか？
+//                          _userReference.document(user.uuid).setData(
+//                              {
+//                                'uuid': user.uuid,
+//                                'name': user.nickname,
+//                                'partnerId': user.partnerId
+//                              }
+//                          );
+//                          /**
+//                           * home画面へ
+//                           */
+//                          Navigator.of(context).pushReplacementNamed('/home');
+//                        });
 
+                      _userReference.document(user.uuid).setData(
+                          {
+                            'uuid': user.uuid,
+                            'name': user.nickname,
+                            'partnerId': user.partnerId
+                          }
+                      ).whenComplete(() {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      });
                       //3. add to preference. if no sentence below here, can't relate user with onegai
                       auth.saveUserInfo(user.uuid, user.uuid);
 
@@ -98,62 +108,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-//class _LoginPageState extends State<LoginPage> {
-//
-//  @override
-//  Widget build(BuildContext context) {
-//    // TODO: implement build
-//    return Scaffold(
-//      appBar: AppBar(title: Text('Oshid-List'), backgroundColor: Colors.blue,),
-////      body: Container(
-////        child: _buildGoogleSignInButton(),
-//
-////      ),
-//
-//    );
-//  }
-
-//  Widget _buildGoogleSignInButton() {
-//    return Column(
-//      mainAxisAlignment: MainAxisAlignment.center,
-//      children: <Widget>[
-//        Center(
-//          child: RaisedButton(
-//            child: Text('Googleアカウントでログイン'),
-//            onPressed: () {
-////              _handleGoogleSignIn().then((googleUser) {
-////                setState(() {
-////                  user.user = googleUser;
-////                  /**
-////                   * uuid保存
-////                   */
-////                  print("loginPage: " + user.uuid);
-////                });
-////
-////                if (!user.user.isEmailVerified) {
-////                  //TODO: 認証失敗の処理
-////                }
-////
-////                _userReference.document(user.uuid).snapshots().listen((
-////                    snapshot) {
-////                  //TODO: uidをドキュメントIDにしてるけどええんか？
-////                  _userReference.document(user.uuid).setData(
-////                      {
-////                        'name': user.user.displayName,
-////                        'photoUrl': user.photoUrl,
-////                        'uuid': user.uuid
-////                      }
-////                  );
-////                  /**
-////                   * home画面へ
-////                   */
-////                  Navigator.of(context).pushReplacementNamed('/home');
-////                });
-////              });
-//            },
-//          ),
-//        )
-//      ],
-//    );
-//  }
