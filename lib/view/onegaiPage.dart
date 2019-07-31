@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection('onegai');
 final _userReference = Firestore.instance.collection('users');
@@ -31,6 +32,11 @@ class OnegaiForm extends StatefulWidget {
 class OnegaiFormState extends State<OnegaiForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _onegai = Onegai();
+///日付の表示変換
+  var formatter = new DateFormat('yyyy/MM/dd(E)', "ja");
+///繰り返しボタンリスト
+  List<String> _repeatation = ['毎日', '週に一度', '月に一度', '年に一度'];
+  String _selectedRepeatation;
 
   ///ボタンの色を変化させる
   bool pressAttention1 = true;
@@ -48,17 +54,16 @@ class OnegaiFormState extends State<OnegaiForm> {
       setState(() {
         user.uuid = preferences.getString('uuid');
       });
-
     });
   }
 
   Future _selectDate() async {
     DateTime picked = await showDatePicker(
-      context: context,
-      initialDate: new DateTime.now(),
-      firstDate: DateTime(1994),
-      lastDate: DateTime(2025)
-    );
+        locale: Locale("ja"),
+        context: context,
+        initialDate: new DateTime.now(),
+        firstDate: DateTime(1994),
+        lastDate: DateTime(2025));
     if (picked != null) {
       setState(() => _onegai.dueDate = picked);
     }
@@ -73,15 +78,12 @@ class OnegaiFormState extends State<OnegaiForm> {
         child: ListView(
           children: <Widget>[
             TextFormField(
-              validator: (value) {
-                if (value.isEmpty) return "おねがいを入れてね";
-              },
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                labelText: 'おねがい'
-              ),
-              onSaved: (value) => (setState(() => _onegai.content = value))
-            ),
+                validator: (value) {
+                  if (value.isEmpty) return "おねがいを入れてね";
+                },
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(labelText: 'おねがい'),
+                onSaved: (value) => (setState(() => _onegai.content = value))),
 
             Text('誰に?'),
 
@@ -89,20 +91,19 @@ class OnegaiFormState extends State<OnegaiForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 FlatButton(
-                  color: pressAttention1 ? Colors.cyan : Colors.grey,
-                  onPressed: () {
-                    setState(() {
-                      pressAttention1 = !pressAttention1;
-                      pressAttention2 = false;
-                      pressAttention3 = false;
-                    });
+                    color: pressAttention1 ? Colors.cyan : Colors.grey,
+                    onPressed: () {
+                      setState(() {
+                        pressAttention1 = !pressAttention1;
+                        pressAttention2 = false;
+                        pressAttention3 = false;
+                      });
 
-                    /**
+                      /**
                      * TODO:
                      */
-                  },
-                  child: Text('パートナー')
-                ),
+                    },
+                    child: Text('パートナー')),
                 FlatButton(
                   color: pressAttention2 ? Colors.cyan : Colors.grey,
                   onPressed: () {
@@ -112,7 +113,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                       pressAttention3 = false;
                     });
                   },
-                    child: Text('ふたりで'),
+                  child: Text('ふたりで'),
                 ),
                 FlatButton(
                     color: pressAttention3 ? Colors.cyan : Colors.grey,
@@ -123,13 +124,12 @@ class OnegaiFormState extends State<OnegaiForm> {
                         pressAttention2 = false;
                       });
                     },
-                    child: Text('自分')
-                )
+                    child: Text('自分'))
               ],
             ),
 
-            Text('いつまでに? ${_onegai.dueDate}'),
-
+            Text('いつまでに? '),
+//
 
             SizedBox(
               width: 10.0,
@@ -137,39 +137,59 @@ class OnegaiFormState extends State<OnegaiForm> {
                 color: Colors.white,
                 onPressed: _selectDate,
                 icon: Icon(Icons.date_range),
-                label: Text('いつまでに？'),
+                label: Text(
+                  formatter.format(_onegai.dueDate),
+                  style: Theme.of(context).textTheme.display1,
+                ),
               ),
             ),
+
+            SizedBox(
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton(
+                hint: Text('繰り返す？'),
+                value: _selectedRepeatation,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedRepeatation = newValue;
+                  });
+                },
+                items: _repeatation.map((repeat) {
+                  return DropdownMenuItem(
+                    child: new Text(repeat),
+                    value: repeat,
+                  );
+                }).toList(),
+              ),
+            ),),
 
             Container(
               child: RaisedButton(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Text('おねがいする', style: TextStyle(color: Colors.white),),
+                child: Text(
+                  'おねがいする',
+                  style: TextStyle(color: Colors.white),
+                ),
                 color: Colors.blue,
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
-                    Scaffold.of(context)
-                        .showSnackBar(SnackBar(content: Text('送信しています'),));
+                    Scaffold.of(context).showSnackBar(SnackBar(
+                      content: Text('送信しています'),
+                    ));
                     _formKey.currentState.save();
 
                     //TODO: documentIDをフィールドに含める必要ある？
-                    _onegaiReference.add(
-                        {
-                          'content': _onegai.content,
-                          'dueDate': _onegai.dueDate,
-                          'status': false,
-                          'owerRef': _userReference.document(user.uuid)
-
-                        }
-                    ).then((docRef) {
-                      _onegaiReference.document(docRef.documentID).updateData(
-                          {
-                            'onegaiId': docRef.documentID
-                          }
-                      );
+                    _onegaiReference.add({
+                      'content': _onegai.content,
+                      'dueDate': _onegai.dueDate,
+                      'status': false,
+                      'owerRef': _userReference.document(user.uuid)
+                    }).then((docRef) {
+                      _onegaiReference
+                          .document(docRef.documentID)
+                          .updateData({'onegaiId': docRef.documentID});
                       Navigator.of(context).pop('/home');
                     });
-
                   }
                 },
               ),

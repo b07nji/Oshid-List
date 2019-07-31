@@ -19,6 +19,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+#japanese translation
+  flutter_localizations:
+      sdk: flutter
 
   #generate QR code
   qr_flutter: ^2.1.0+55
