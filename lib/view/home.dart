@@ -3,7 +3,9 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
+import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,8 +14,8 @@ import 'onegaiPage.dart';
 
 final _onegaiReference = Firestore.instance.collection('onegai');
 final _userReference = Firestore.instance.collection('users');
+final auth = Authentication();
 final user = User();
-String strDeepLink = 'deepLink is null';
 final qr = QRUtils();
 
 class MyHomePage extends StatefulWidget {
@@ -23,7 +25,20 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
+
+  final List<Tab> tabs = <Tab> [
+    Tab(
+      key: Key('0'),
+      text: '自分',
+        ),
+    Tab(
+      key: Key('1'),
+      text: 'パートナー',
+    )
+  ];
+  TabController _tabController;
   SharedPreferences preferences;
 
   ///起動時に呼ばれる
@@ -34,76 +49,152 @@ class _MyHomePageState extends State<MyHomePage> {
       preferences = pref;
       setState(() {
         user.uuid = preferences.getString('uuid');
-        user.photoUrl = preferences.getString('photoUrl');
+        user.hasPartner = preferences.getBool('hasPartner');
+        user.partnerId = preferences.getString('partnerId');
+        print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
       });
     });
+    //タブ生成
+    _tabController = TabController(length: tabs.length, vsync: this);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Oshid-List'),),
-      body: _buildBody(context),
-      endDrawer:
-      Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            Container(
-              height: 100,
-              child: DrawerHeader(
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.topLeft,
-                      width: 220,
-                      child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
-                    ),
-//                    Container(
-//                      alignment: Alignment.topRight,
-//                      height: 50,
-//                      width: 50,
-//                      decoration: BoxDecoration(
-//                          shape: BoxShape.circle,
-//                          image: DecorationImage(
-//                              fit: BoxFit.fill,
-////                              image: user.photoUrl != null ? NetworkImage(user.photoUrl) : NetworkImage("https://lh4.googleusercontent.com/-VmebVOAhP1E/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rcWhQSey8f3-8xa3CbS7BQx4dnJHA/s1337/photo.jpg")
-//                          )
-//                      ),
-//                    )
-                  ],
-                ),
-                decoration: BoxDecoration(
-                    color: Colors.blue
-                ),
-              ),
-            ),
-
-            Container(
-              child: RaisedButton(
-                child: Text('パートナーと繋がる'),
-                onPressed: () {
-                  qr.readQr();
-                  print("readQr() is called");
-                },
-              ),
-            ),
-
-            Container(
-              child: qr.qr,
-            ),
-
-            Container(
-              child: Text('ログアウトする'),
-            ),
-
-            Container(
-              child: Text(strDeepLink),
-            )
-
-          ],
-        ),
+      appBar: AppBar(title: Text('Oshid-List')),
+      body: TabBarView(
+        controller: _tabController,
+        children: tabs.map((tab) {
+          return _createTab(tab, context);
+        }).toList()
       ),
+      endDrawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                Container(
+                  height: 100,
+                  child: DrawerHeader(
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          alignment: Alignment.topLeft,
+                          width: 220,
+                          child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
+                        ),
+                      ],
+                    ),
+                    decoration: BoxDecoration(
+                        color: Colors.blue
+                    ),
+                  ),
+                ),
+
+                Container(
+                  child: RaisedButton(
+                    child: Text('パートナーと繋がる'),
+                    onPressed: () {
+                      qr.readQr().then((partnerId) {
+                        /**
+                         *  TODO: パートナーIDをローカルストレージ保存
+                         */
+                        auth.saveHasPartnerFlag(true);
+                        auth.savePartnerInfo(partnerId);
+
+                        user.hasPartner = true;
+                        user.partnerId = partnerId;
+
+                        _userReference.document(user.uuid).updateData({
+                              'hasPartner': user.hasPartner,
+                              'partnerId': user.partnerId
+                            }).whenComplete(() {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return SimpleDialog(
+                                      title:Text('test'),
+                                      children: <Widget>[
+                                        AlertDialog(
+                                          title: Text('uuid: ' + user.uuid + "/ partner id: " + user.partnerId),
+                                        )
+                                      ],
+                                    );
+                                  }
+                              );
+                        });
+
+                        _userReference.document(user.partnerId).updateData({
+                          'hasPartner': user.hasPartner,
+                          'partnerId': user.uuid
+                        }).whenComplete(() {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return SimpleDialog(
+                                  title:Text('test'),
+                                  children: <Widget>[
+                                    AlertDialog(
+                                      title: Text('パートナーに反映'),
+                                    )
+                                  ],
+                                );
+                              }
+                          );
+                        });
+
+                      });
+                    },
+                  ),
+                ),
+
+                Container(
+                  child: qr.generateQr(user.uuid),
+                ),
+                /**
+                 * TODO: [WIP]CLoud Messaginで処理するようにする
+                 */
+                Container(
+                  child: RaisedButton(
+                    child: Text('パートナー情報反映'),
+                    onPressed: () {
+                      _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+                        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+//                        test.keys.forEach((key) {
+//                          print(key + " : " + test[key].toString());
+//                        });
+                        auth.saveHasPartnerFlag(data['hasPartner']);
+                        user.hasPartner = data['hasPartner'];
+                        auth.hasPartner().then((value) {
+                          print('has partner?: ' + value.toString());
+                        });
+
+                        auth.savePartnerInfo(data['partnerId']);
+                        user.partnerId = data['partnerId'];
+                        auth.getPartnerId().then((value) {
+                          print('what is partner id: ' + value);
+                        });
+                      });
+
+
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              title:Text('test'),
+                              children: <Widget>[
+                                AlertDialog(
+                                  title: Text('パートナーに反映'),
+                                )
+                              ],
+                            );
+                          }
+                      );
+                    }),
+                ),
+              ],
+            ),
+
+          ),
 
 
       floatingActionButton: FloatingActionButton(
@@ -116,15 +207,59 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         },
       ),
+
+      //タブ生成
+      bottomNavigationBar: TabBar(
+        tabs: tabs,
+        controller: _tabController,
+        unselectedLabelColor: Colors.grey,
+        indicatorColor: Colors.blue,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicatorWeight: 2,
+        indicatorPadding: EdgeInsets.symmetric(
+          horizontal: 18.0,
+          vertical: 8
+        ),
+        labelColor: Colors.black,
+      ),
+
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _createTab(Tab tab, BuildContext context) {
+
+    var uuid;
+
+    if (tab.key == Key('0')) {
+      uuid = user.uuid;
+    } else {
+      uuid = user.partnerId;
+
+//      if (!user.hasPartner) {
+//        showDialog(
+//            context: context,
+//            builder: (context) {
+//              return SimpleDialog(
+//                title:Text('test'),
+//                children: <Widget>[
+//                  AlertDialog(
+//                    title: Text('パートナーと繋がろう！'),
+//                  )
+//                ],
+//              );
+//            }
+//        );
+//        return null;
+//      }
+    }
     return StreamBuilder<QuerySnapshot> (
-      stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(user.uuid)).snapshots(),
+      /**
+       * TODO: 時系列順にそーと
+       */
+
+      stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return LinearProgressIndicator();
-
         return _buildList(context, snapshot.data.documents);
       },
     );
@@ -156,7 +291,6 @@ class _MyHomePageState extends State<MyHomePage> {
           controlAffinity: ListTileControlAffinity.leading,
           onChanged: (bool e) {
             setState(() {
-              print('change status called');
               /**
                * TODO: 削除周り精査
                * 今はとりあえずFirestoreのドキュメントを物理削除している
@@ -199,4 +333,3 @@ class Record {
   @override
   String toString() => "Record<$content: $dueDate>";
 }
-

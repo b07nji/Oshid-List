@@ -1,4 +1,6 @@
 class User {
-  String photoUrl;
+  String nickname;
   String uuid;
+  String partnerId;
+  bool hasPartner;
 }
