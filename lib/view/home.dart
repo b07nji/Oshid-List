@@ -137,16 +137,16 @@ class _MyHomePageState extends State<MyHomePage>
           ),
 
 
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add, size: 30),
-        backgroundColor: Colors.blue,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => OnegaiCreator()),
-          );
-        },
-      ),
+////      floatingActionButton: FloatingActionButton(
+//        child: Icon(Icons.add, size: 30),
+//        backgroundColor: Colors.blue,
+//        onPressed: () {
+//          Navigator.push(
+//            context,
+//            MaterialPageRoute(builder: (context) => OnegaiCreator()),
+//          );
+//        },
+//      ),
 
       //タブ生成
       bottomNavigationBar: TabBar(
