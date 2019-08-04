@@ -10,12 +10,6 @@ class Authentication {
     user.uuid = (preferences.getString('uuid') ?? null);
     await preferences.setString('uuid', uuid);
     await preferences.setString('nickname', nickname);
-
-  }
-
-  void savePartnerInfo(String partnerId) async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.setString('partnerId', partnerId);
   }
 
   Future<String> getUuid() async {
@@ -23,9 +17,24 @@ class Authentication {
     return (prefs.getString('uuid') ?? null);
   }
 
+  void savePartnerInfo(String partnerId) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setString('partnerId', partnerId);
+  }
+
   Future<String> getPartnerId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return (prefs.getString('uuid') ?? null);
+    return (prefs.getString('partnerId') ?? null);
+  }
+
+  void saveHasPartnerFlag(bool hasPartner) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('hasPartner', hasPartner);
+  }
+
+  Future<bool> hasPartner() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return (prefs.getBool('hasPartner') ?? false);
   }
 }
 
