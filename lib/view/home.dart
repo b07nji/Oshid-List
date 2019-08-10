@@ -98,23 +98,17 @@ class _MyHomePageState extends State<MyHomePage>
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
-<<<<<<< HEAD
-                        //aaaaaaaaa
-=======
                         auth.saveHasPartnerFlag(true);
->>>>>>> 97a51f4c6c03e22365066ac6f1944995f3946266
                         auth.savePartnerInfo(partnerId);
 
                         user.hasPartner = true;
                         user.partnerId = partnerId;
 
                         _userReference.document(user.uuid).updateData({
-<<<<<<< HEAD
-                              'partnerId': user.partnerId //aaaa
-=======
+
                               'hasPartner': user.hasPartner,
                               'partnerId': user.partnerId
->>>>>>> 97a51f4c6c03e22365066ac6f1944995f3946266
+
                             }).whenComplete(() {
                               showDialog(
                                   context: context,
