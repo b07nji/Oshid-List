@@ -67,28 +67,15 @@ class _LoginPageState extends State<LoginPage> {
                       }
                       //TODO: user.uuidへの代入をする場所考える
                       user.uuid = uuid.v1();
+                      user.hasPartner = false;
+                      user.partnerId = "no partner";
                       print(user.uuid);
-                      //2. add nick name to firebase db
-//                      _userReference.document(user.uuid).snapshots().listen((
-//                            snapshot) {
-//                          //TODO: uidをドキュメントIDにしてるけどええんか？
-//                          _userReference.document(user.uuid).setData(
-//                              {
-//                                'uuid': user.uuid,
-//                                'name': user.nickname,
-//                                'partnerId': user.partnerId
-//                              }
-//                          );
-//                          /**
-//                           * home画面へ
-//                           */
-//                          Navigator.of(context).pushReplacementNamed('/home');
-//                        });
 
                       _userReference.document(user.uuid).setData(
                           {
                             'uuid': user.uuid,
                             'name': user.nickname,
+                            'hasPartner': user.hasPartner,
                             'partnerId': user.partnerId
                           }
                       ).whenComplete(() {
@@ -96,6 +83,8 @@ class _LoginPageState extends State<LoginPage> {
                       });
                       //3. add to preference. if no sentence below here, can't relate user with onegai
                       auth.saveUserInfo(user.uuid, user.uuid);
+                      auth.saveHasPartnerFlag(user.hasPartner);
+                      auth.savePartnerInfo(user.partnerId);
 
                     },
                   ),
