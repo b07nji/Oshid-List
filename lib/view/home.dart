@@ -36,10 +36,11 @@ class _MyHomePageState extends State<MyHomePage>
     Tab(
       key: Key('1'),
       text: 'パートナー',
-    )
+    ),
   ];
   TabController _tabController;
   SharedPreferences preferences;
+
 
   ///起動時に呼ばれる
   @override
@@ -57,6 +58,7 @@ class _MyHomePageState extends State<MyHomePage>
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage>
 
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, size: 30),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.orange,
         onPressed: () {
           Navigator.push(
             context,
@@ -213,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage>
         tabs: tabs,
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
-        indicatorColor: Colors.blue,
+        indicatorColor: Colors.orange,
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
@@ -259,17 +261,19 @@ class _MyHomePageState extends State<MyHomePage>
 
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
+        if (!snapshot.hasData) return Center(child:Text("おねがいはないよ"));
         return _buildList(context, snapshot.data.documents);
       },
     );
   }
 
   Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
-    return ListView(
+    return
+      ListView(
       padding: const EdgeInsets.only(top: 20.0),
       children: snapshot.map((data) => _buildListItem(context,data)).toList(),
     );
+
   }
 
   Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
@@ -308,7 +312,6 @@ class _MyHomePageState extends State<MyHomePage>
       ),
     );
   }
-
 }
 
 class Record {
