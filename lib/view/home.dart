@@ -259,7 +259,8 @@ class _MyHomePageState extends State<MyHomePage>
 
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
+        if (!snapshot.hasData) return Container();
+        
         return _buildList(context, snapshot.data.documents);
       },
     );
