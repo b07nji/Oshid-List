@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'onegaiPage.dart';
 
+import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection('onegai');
 final _userReference = Firestore.instance.collection('users');
@@ -98,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage>
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
+
                         auth.saveHasPartnerFlag(true);
                         auth.savePartnerInfo(partnerId);
 
@@ -105,10 +107,8 @@ class _MyHomePageState extends State<MyHomePage>
                         user.partnerId = partnerId;
 
                         _userReference.document(user.uuid).updateData({
-
                               'hasPartner': user.hasPartner,
                               'partnerId': user.partnerId
-
                             }).whenComplete(() {
                               showDialog(
                                   context: context,
@@ -277,6 +277,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
     final record = Record.fromSnapshot(data);
+    var formatter = new DateFormat('(E) M/d', "ja");
 
     return Padding(
       key: ValueKey(record.content),
@@ -286,13 +287,12 @@ class _MyHomePageState extends State<MyHomePage>
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(5.0),
         ),
-        child: CheckboxListTile(
-          title: Text(record.content),
-          subtitle: Text(record.dueDate.toIso8601String()),
+        child: LabeledCheckbox(
+          label: record.content,
+          subtitle:formatter.format(record.dueDate),
+          padding:EdgeInsets.all(10.0),
           value: record.status,
-          activeColor: Colors.blue,
-          controlAffinity: ListTileControlAffinity.leading,
-          onChanged: (bool e) {
+          onChanged: (bool newValue) {
             setState(() {
               /**
                * TODO: 削除周り精査
@@ -312,6 +312,48 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
+}
+
+class LabeledCheckbox extends StatelessWidget {
+  const LabeledCheckbox({
+    this.label,
+    this.value,
+    this.onChanged,
+    this.subtitle,
+    this.padding,
+  });
+
+  final String label;
+  final bool value;
+  final Function onChanged;
+  final String subtitle;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding:padding,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child:Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+              Text(label,
+              style:TextStyle(fontSize: 25.0)),
+              Text(subtitle),]
+             ),),
+              Checkbox(
+              value: value,
+              activeColor: Colors.blue,
+              onChanged: (bool newValue) {
+                onChanged(newValue);
+              },
+            ),
+          ],
+        ),
+    );
+  }
 }
 
 class Record {

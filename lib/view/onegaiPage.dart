@@ -208,10 +208,10 @@ class OnegaiFormState extends State<OnegaiForm> {
                     _selectedRepeatation = newValue;
                   });
                 },
-                items: _repeatation.map((repeat) {
+                items: _repeatation.map((location) {
                   return DropdownMenuItem(
-                    child: new Text(repeat),
-                    value: repeat,
+                    child: new Text(location),
+                    value: location,
                   );
                 }).toList(),
               ),
