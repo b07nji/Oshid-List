@@ -105,8 +105,10 @@ class _MyHomePageState extends State<MyHomePage>
                         user.partnerId = partnerId;
 
                         _userReference.document(user.uuid).updateData({
+
                               'hasPartner': user.hasPartner,
                               'partnerId': user.partnerId
+
                             }).whenComplete(() {
                               showDialog(
                                   context: context,
