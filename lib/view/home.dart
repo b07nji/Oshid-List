@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
@@ -38,7 +39,6 @@ class _MyHomePageState extends State<MyHomePage>
     )
   ];
   TabController _tabController;
-
   SharedPreferences preferences;
 
   ///起動時に呼ばれる
@@ -49,11 +49,11 @@ class _MyHomePageState extends State<MyHomePage>
       preferences = pref;
       setState(() {
         user.uuid = preferences.getString('uuid');
+        user.hasPartner = preferences.getBool('hasPartner');
         user.partnerId = preferences.getString('partnerId');
-        print("initState() is called: " + user.uuid);
+        print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
       });
     });
-
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
   }
@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Oshid-List'),),
+      appBar: AppBar(title: Text('Oshid-List')),
       body: TabBarView(
         controller: _tabController,
         children: tabs.map((tab) {
@@ -98,12 +98,23 @@ class _MyHomePageState extends State<MyHomePage>
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
+<<<<<<< HEAD
                         //aaaaaaaaa
+=======
+                        auth.saveHasPartnerFlag(true);
+>>>>>>> 97a51f4c6c03e22365066ac6f1944995f3946266
                         auth.savePartnerInfo(partnerId);
+
+                        user.hasPartner = true;
                         user.partnerId = partnerId;
 
                         _userReference.document(user.uuid).updateData({
+<<<<<<< HEAD
                               'partnerId': user.partnerId //aaaa
+=======
+                              'hasPartner': user.hasPartner,
+                              'partnerId': user.partnerId
+>>>>>>> 97a51f4c6c03e22365066ac6f1944995f3946266
                             }).whenComplete(() {
                               showDialog(
                                   context: context,
@@ -119,6 +130,26 @@ class _MyHomePageState extends State<MyHomePage>
                                   }
                               );
                         });
+
+                        _userReference.document(user.partnerId).updateData({
+                          'hasPartner': user.hasPartner,
+                          'partnerId': user.uuid
+                        }).whenComplete(() {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return SimpleDialog(
+                                  title:Text('test'),
+                                  children: <Widget>[
+                                    AlertDialog(
+                                      title: Text('パートナーに反映'),
+                                    )
+                                  ],
+                                );
+                              }
+                          );
+                        });
+
                       });
                     },
                   ),
@@ -127,9 +158,46 @@ class _MyHomePageState extends State<MyHomePage>
                 Container(
                   child: qr.generateQr(user.uuid),
                 ),
-
+                /**
+                 * TODO: [WIP]CLoud Messaginで処理するようにする
+                 */
                 Container(
-                  child: Text('ログアウトする'),
+                  child: RaisedButton(
+                    child: Text('パートナー情報反映'),
+                    onPressed: () {
+                      _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+                        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+//                        test.keys.forEach((key) {
+//                          print(key + " : " + test[key].toString());
+//                        });
+                        auth.saveHasPartnerFlag(data['hasPartner']);
+                        user.hasPartner = data['hasPartner'];
+                        auth.hasPartner().then((value) {
+                          print('has partner?: ' + value.toString());
+                        });
+
+                        auth.savePartnerInfo(data['partnerId']);
+                        user.partnerId = data['partnerId'];
+                        auth.getPartnerId().then((value) {
+                          print('what is partner id: ' + value);
+                        });
+                      });
+
+
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              title:Text('test'),
+                              children: <Widget>[
+                                AlertDialog(
+                                  title: Text('パートナーに反映'),
+                                )
+                              ],
+                            );
+                          }
+                      );
+                    }),
                 ),
               ],
             ),
@@ -169,16 +237,38 @@ class _MyHomePageState extends State<MyHomePage>
   Widget _createTab(Tab tab, BuildContext context) {
 
     var uuid;
+
     if (tab.key == Key('0')) {
       uuid = user.uuid;
     } else {
       uuid = user.partnerId;
+
+//      if (!user.hasPartner) {
+//        showDialog(
+//            context: context,
+//            builder: (context) {
+//              return SimpleDialog(
+//                title:Text('test'),
+//                children: <Widget>[
+//                  AlertDialog(
+//                    title: Text('パートナーと繋がろう！'),
+//                  )
+//                ],
+//              );
+//            }
+//        );
+//        return null;
+//      }
     }
     return StreamBuilder<QuerySnapshot> (
+      /**
+       * TODO: 時系列順にそーと
+       */
+
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
-
+        if (!snapshot.hasData) return Container();
+        
         return _buildList(context, snapshot.data.documents);
       },
     );
