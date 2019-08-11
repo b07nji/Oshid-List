@@ -37,6 +37,10 @@ class _MyHomePageState extends State<MyHomePage>
       key: Key('1'),
       text: 'パートナー',
     ),
+    Tab(
+      key: Key('3'),
+      text: 'おねがいポイント',
+    ),
   ];
   TabController _tabController;
   SharedPreferences preferences;
