@@ -10,7 +10,9 @@ import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'onegaiPage.dart';
+import 'pointPage.dart';
 
+import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection('onegai');
 final _userReference = Firestore.instance.collection('users');
@@ -36,10 +38,6 @@ class _MyHomePageState extends State<MyHomePage>
     Tab(
       key: Key('1'),
       text: 'パートナー',
-    ),
-    Tab(
-      key: Key('3'),
-      text: 'おねがいポイント',
     ),
   ];
   TabController _tabController;
@@ -104,6 +102,7 @@ class _MyHomePageState extends State<MyHomePage>
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
+
                         auth.saveHasPartnerFlag(true);
                         auth.savePartnerInfo(partnerId);
 
@@ -118,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage>
                                   context: context,
                                   builder: (context) {
                                     return SimpleDialog(
-                                      title:Text('test'),
+                                      title:Text('pointPage.dart'),
                                       children: <Widget>[
                                         AlertDialog(
                                           title: Text('uuid: ' + user.uuid + "/ partner id: " + user.partnerId),
@@ -137,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage>
                               context: context,
                               builder: (context) {
                                 return SimpleDialog(
-                                  title:Text('test'),
+                                  title:Text('pointPage.dart'),
                                   children: <Widget>[
                                     AlertDialog(
                                       title: Text('パートナーに反映'),
@@ -186,7 +185,7 @@ class _MyHomePageState extends State<MyHomePage>
                           context: context,
                           builder: (context) {
                             return SimpleDialog(
-                              title:Text('test'),
+                              title:Text('pointPage.dart'),
                               children: <Widget>[
                                 AlertDialog(
                                   title: Text('パートナーに反映'),
@@ -246,7 +245,7 @@ class _MyHomePageState extends State<MyHomePage>
 //            context: context,
 //            builder: (context) {
 //              return SimpleDialog(
-//                title:Text('test'),
+//                title:Text('pointPage.dart'),
 //                children: <Widget>[
 //                  AlertDialog(
 //                    title: Text('パートナーと繋がろう！'),
@@ -265,7 +264,7 @@ class _MyHomePageState extends State<MyHomePage>
 
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return Center(child:Text("おねがいはないよ"));
+        if (!snapshot.hasData) return Container();
         return _buildList(context, snapshot.data.documents);
       },
     );
@@ -282,6 +281,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
     final record = Record.fromSnapshot(data);
+    var formatter = new DateFormat('(E) M/d', "ja");
 
     return Padding(
       key: ValueKey(record.content),
@@ -291,13 +291,16 @@ class _MyHomePageState extends State<MyHomePage>
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(5.0),
         ),
-        child: CheckboxListTile(
-          title: Text(record.content),
-          subtitle: Text(record.dueDate.toIso8601String()),
+        child: LabeledCheckbox(
+          onTap:(){Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OnegaiCreator()),
+          );},
+          label: record.content,
+          subtitle:formatter.format(record.dueDate),
+          padding:EdgeInsets.all(10.0),
           value: record.status,
-          activeColor: Colors.blue,
-          controlAffinity: ListTileControlAffinity.leading,
-          onChanged: (bool e) {
+          onChanged: (bool newValue) {
             setState(() {
               /**
                * TODO: 削除周り精査
@@ -314,6 +317,55 @@ class _MyHomePageState extends State<MyHomePage>
           },
         ),
       ),
+    );
+  }
+}
+
+class LabeledCheckbox extends StatelessWidget {
+  const LabeledCheckbox({
+    this.label,
+    this.value,
+    this.onChanged,
+    this.subtitle,
+    this.padding,
+    this.onTap,
+  });
+
+  final String label;
+  final bool value;
+  final Function onChanged;
+  final String subtitle;
+  final EdgeInsets padding;
+  final Function onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding:padding,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child:InkWell(
+              onTap:(){Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => OnegaiCreator()),
+              );},
+              child:Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+              Text(label,
+              style:TextStyle(fontSize: 25.0)),
+              Text(subtitle),]
+             ),),),
+              Checkbox(
+              value: value,
+              activeColor: Colors.blue,
+              onChanged: (bool newValue) {
+                onChanged(newValue);
+              },
+            ),
+          ],
+        ),
     );
   }
 }
