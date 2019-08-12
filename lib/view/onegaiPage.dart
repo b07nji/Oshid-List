@@ -45,7 +45,6 @@ class OnegaiFormState extends State<OnegaiForm> {
   bool pressAttention2 = false;
   bool pressAttention3 = false;
 
-
   SharedPreferences preferences;
 
   ///起動時に呼ばれる
