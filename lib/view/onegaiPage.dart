@@ -35,7 +35,7 @@ class OnegaiFormState extends State<OnegaiForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _onegai = Onegai();
 ///日付の表示変換
-  var formatter = new DateFormat('yyyy/MM/dd(E)', "ja");
+  var formatter = DateFormat('M/d E', "ja");
 ///繰り返しボタンリスト
   List<String> _repeatation = ['毎日', '週に一度', '月に一度', '年に一度'];
   String _selectedRepeatation;
@@ -114,59 +114,56 @@ class OnegaiFormState extends State<OnegaiForm> {
                   color: pressAttention1 ? Colors.cyan : Colors.grey,
                   child: Text('パートナー'),
                   onPressed: () {
-                    if (!user.hasPartner) {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('pointPage.dart'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーと繋がってね'),
-                                )
-                              ],
-                            );
-                          }
-                      );
-                    }
-                    setState(() {
-                      pressAttention1 = !pressAttention1;
-                      pressAttention2 = false;
-                      pressAttention3 = false;
+                    if (user.hasPartner) {
+                      setState(() {
+                        pressAttention1 = !pressAttention1;
+                        pressAttention2 = false;
+                        pressAttention3 = false;
 
-                      //TODO: partnerID = 'no partner'の時にdisable
-                      user.uuid = 'not mine';
-                    });
-                      /**
-                     * TODO:
-                     */
+                        //TODO: partnerID = 'no partner'の時にdisable
+                        user.uuid = 'not mine';
+                      });
+                    }
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return SimpleDialog(
+                            title:Text('test'),
+                            children: <Widget>[
+                              AlertDialog(
+                                title: Text('パートナーと繋がってね'),
+                              )
+                            ],
+                          );
+                        }
+                    );
                   }
                 ),
                 FlatButton(
                   color: pressAttention2 ? Colors.cyan : Colors.grey,
                   child: Text('ふたりで'),
                   onPressed: () {
-
-                    if (!user.hasPartner) {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('pointPage.dart'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーと繋がってね'),
-                                )
-                              ],
-                            );
-                          }
-                      );
+                    if (user.hasPartner) {
+                      setState(() {
+                        pressAttention2 = !pressAttention2;
+                        pressAttention1 = false;
+                        pressAttention3 = false;
+                      });
                     }
-                    setState(() {
-                      pressAttention2 = !pressAttention2;
-                      pressAttention1 = false;
-                      pressAttention3 = false;
-                    });
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return SimpleDialog(
+                            title:Text('test'),
+                            children: <Widget>[
+                              AlertDialog(
+                                title: Text('パートナーと繋がってね'),
+                              )
+                            ],
+                          );
+                        }
+                    );
+
                   },
                 ),
                 FlatButton(
@@ -184,7 +181,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               ],
             ),
 
-            Text('いつまでに?'),
+            Text('いつまでに? ${formatter.format(_onegai.dueDate)}'),
             SizedBox(
               width: 10.0,
               child: RaisedButton.icon(
@@ -299,31 +296,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                       user.partnerId = preferences.getString('partnerId');
                       Navigator.of(context).pop('/home');
 
-//                      _onegaiReference.add(
-//                          {
-//                            'content': _onegai.content,
-//                            'dueDate': _onegai.dueDate,
-//                            'status': false,
-//                            'mine': _userReference.document(user.uuid),
-//                            'owerRef': _userReference.document(user.partnerId)
-//
-//                          }
-//                      ).then((docRef) {
-//                        _onegaiReference.document(docRef.documentID).updateData(
-//                            {
-//                              'onegaiId': docRef.documentID
-//                            }
-//                        );
-//                        /**
-//                         * TODO:[refactor]値の初期化
-//                         */
-//                        user.uuid = preferences.getString('uuid');
-//                        user.partnerId = preferences.getString('partnerId');
-//                        Navigator.of(context).pop('/home');
-//                      });
                     }
-
-
                   }
                 },
               ),
@@ -334,4 +307,3 @@ class OnegaiFormState extends State<OnegaiForm> {
     );
   }
 }
-

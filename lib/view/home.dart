@@ -240,6 +240,7 @@ class _MyHomePageState extends State<MyHomePage>
     } else {
       uuid = user.partnerId;
 
+<<<<<<< HEAD
 //      if (!user.hasPartner) {
 //        showDialog(
 //            context: context,
@@ -256,6 +257,8 @@ class _MyHomePageState extends State<MyHomePage>
 //        );
 //        return null;
 //      }
+=======
+>>>>>>> 5f12f744a848e8f8cdc42ea522751f466c1f3878
     }
     return StreamBuilder<QuerySnapshot> (
       /**
@@ -281,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
     final record = Record.fromSnapshot(data);
-    var formatter = new DateFormat('(E) M/d', "ja");
+    var formatter = DateFormat('E: M/d', "ja");
 
     return Padding(
       key: ValueKey(record.content),
