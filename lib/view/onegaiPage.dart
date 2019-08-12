@@ -109,33 +109,30 @@ class OnegaiFormState extends State<OnegaiForm> {
                   color: pressAttention1 ? Colors.cyan : Colors.grey,
                   child: Text('パートナー'),
                   onPressed: () {
-                    if (!user.hasPartner) {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('test'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーと繋がってね'),
-                                )
-                              ],
-                            );
-                          }
-                      );
+                    if (user.hasPartner) {
+                      setState(() {
+                        pressAttention1 = !pressAttention1;
+                        pressAttention2 = false;
+                        pressAttention3 = false;
+
+                        //TODO: partnerID = 'no partner'の時にdisable
+                        user.uuid = 'not mine';
+                      });
                     }
-                    setState(() {
-                      pressAttention1 = !pressAttention1;
-                      pressAttention2 = false;
-                      pressAttention3 = false;
 
-                      //TODO: partnerID = 'no partner'の時にdisable
-                      user.uuid = 'not mine';
-                    });
-
-                    /**
-                     * TODO:
-                     */
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return SimpleDialog(
+                            title:Text('test'),
+                            children: <Widget>[
+                              AlertDialog(
+                                title: Text('パートナーと繋がってね'),
+                              )
+                            ],
+                          );
+                        }
+                    );
                   }
                 ),
                 FlatButton(
@@ -143,26 +140,27 @@ class OnegaiFormState extends State<OnegaiForm> {
                   child: Text('ふたりで'),
                   onPressed: () {
 
-                    if (!user.hasPartner) {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('test'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーと繋がってね'),
-                                )
-                              ],
-                            );
-                          }
-                      );
+                    if (user.hasPartner) {
+                      setState(() {
+                        pressAttention2 = !pressAttention2;
+                        pressAttention1 = false;
+                        pressAttention3 = false;
+                      });
                     }
-                    setState(() {
-                      pressAttention2 = !pressAttention2;
-                      pressAttention1 = false;
-                      pressAttention3 = false;
-                    });
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return SimpleDialog(
+                            title:Text('test'),
+                            children: <Widget>[
+                              AlertDialog(
+                                title: Text('パートナーと繋がってね'),
+                              )
+                            ],
+                          );
+                        }
+                    );
+
                   },
                 ),
                 FlatButton(
@@ -304,8 +302,4 @@ class OnegaiFormState extends State<OnegaiForm> {
       ),
     );
   }
-}
-
-class WhoseFlag {
-
 }
