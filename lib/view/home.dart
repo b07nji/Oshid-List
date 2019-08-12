@@ -261,7 +261,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
     final record = Record.fromSnapshot(data);
-    var formatter = new DateFormat('(E) M/d', "ja");
+    var formatter = DateFormat('E: M/d', "ja");
 
     return Padding(
       key: ValueKey(record.content),

@@ -35,7 +35,7 @@ class OnegaiFormState extends State<OnegaiForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _onegai = Onegai();
 ///日付の表示変換
-  var formatter = new DateFormat('yyyy/MM/dd(E)', "ja");
+  var formatter = DateFormat('M/d E', "ja");
 ///繰り返しボタンリスト
   List<String> _repeatation = ['毎日', '週に一度', '月に一度', '年に一度'];
   String _selectedRepeatation;
@@ -182,7 +182,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               ],
             ),
 
-            Text('いつまでに? ${_onegai.dueDate}'),
+            Text('いつまでに? ${formatter.format(_onegai.dueDate)}'),
             SizedBox(
               width: 10.0,
               child: RaisedButton.icon(
