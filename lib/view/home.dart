@@ -239,26 +239,6 @@ class _MyHomePageState extends State<MyHomePage>
       uuid = user.uuid;
     } else {
       uuid = user.partnerId;
-
-<<<<<<< HEAD
-//      if (!user.hasPartner) {
-//        showDialog(
-//            context: context,
-//            builder: (context) {
-//              return SimpleDialog(
-//                title:Text('pointPage.dart'),
-//                children: <Widget>[
-//                  AlertDialog(
-//                    title: Text('パートナーと繋がろう！'),
-//                  )
-//                ],
-//              );
-//            }
-//        );
-//        return null;
-//      }
-=======
->>>>>>> 5f12f744a848e8f8cdc42ea522751f466c1f3878
     }
     return StreamBuilder<QuerySnapshot> (
       /**
