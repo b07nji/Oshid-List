@@ -57,84 +57,43 @@ String getDonguriFile3(int index) {
 }
 
 
-List<Widget> PointImages =  <Widget>[
+List<Widget> PointImages = <Widget>[
+
   Text("頑張りポイント"),
   Row(children: <Widget>[
     Expanded(
-        child:Text("自分")),
+        child:Text("自分")
+    ),
     Expanded(
-        child:Text("パートナー")),],),
-  OnegaiPointer(
-//    width: 200.0,
-//    height: 170.0,
-//    minWidth: 100,
-//    maxHeight: 100,
-//    minHeight: 100,
-//    maxWidth: 100,
+        child:Text("パートナー")),
+  ],
   ),
-//  Text("ありさん夫婦"),
-  OnegaiPointer(
-//    width: 200.0,
-//    height: 170.0,
-//    minWidth: 100,
-//    maxHeight: 100,
-//    minHeight: 100,
-//    maxWidth: 100,
-  ),
-//  Text("くまさん夫婦"),
-  OnegaiPointer(
-//    width: 200.0,
-//    height: 170.0,
-//    minWidth: 100,
-//    maxHeight: 100,
-//    minHeight: 100,
-//    maxWidth: 100,
-  ),
-//  Text("とりさん夫婦"),
+  OnegaiPointer(),
+  OnegaiPointer(),
+  OnegaiPointer(),
 ];
-const int onegai =8;
 
-//Map myMap = {"Points": [
-//
-//  {"classname": "ありさん", "pointImage":getDonguriFile1},
-//  {"class": "くまさん", "pointImage":getDonguriFile2},
-//  {"class": "キリンさん", "pointImage":getDonguriFile2},
-//]
-//};
-//
-//class MyData {
-//  String classname;
-////  int pointCount;
-//  String pointImage;
-//
-//  MyData.fromJson(Map json){
-//    this.classname = json["classname"];
-////    this.pointCount = json ["pointCount"];
-//    this.pointImage = json["pointImage"];
-//  }
-//}
+const int onegai =8;
+Map myMap = {"Points": [
+  {"classname": "ありさん", "pointImage":getDonguriFile1},
+  {"class": "くまさん", "pointImage":getDonguriFile2},
+  {"class": "キリンさん", "pointImage":getDonguriFile2},
+]
+};
+
+class MyData {
+  String classname;
+  int pointCount;
+  String pointImage;
+
+  MyData.fromJson(Map json){
+    this.classname = json["classname"];
+    this.pointCount = json ["pointCount"];
+    this.pointImage = json["pointImage"];
+  }
+}
 
 class OnegaiPointer extends StatelessWidget {
-//  const OnegaiPointer({
-//    this.width,
-//    this.height,
-//    this.padding,
-//    this.minWidth,
-//    this.maxHeight,
-//    this.minHeight,
-//    this.maxWidth,
-////    this.data
-//  });
-//
-//  final EdgeInsets padding;
-//  final double width;
-//  final double height;
-//  final double minWidth;
-//  final double maxHeight;
-//  final double minHeight;
-//  final double maxWidth;
-//  final MyData data;
-
 
   @override
   Widget build(BuildContext context) {
