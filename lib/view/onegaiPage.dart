@@ -17,7 +17,7 @@ class OnegaiCreator extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('おねがいする'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
       ),
       body: Center(
         child: OnegaiForm(),
@@ -221,7 +221,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                   'おねがいする',
                   style: TextStyle(color: Colors.white),
                 ),
-                color: Colors.blue,
+                color: Color.fromRGBO(207, 167, 205, 1),
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     Scaffold.of(context).showSnackBar(SnackBar(
