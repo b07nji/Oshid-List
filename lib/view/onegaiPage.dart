@@ -122,20 +122,21 @@ class OnegaiFormState extends State<OnegaiForm> {
                         //TODO: partnerID = 'no partner'の時にdisable
                         user.uuid = 'not mine';
                       });
+                    } else {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              title:Text('test'),
+                              children: <Widget>[
+                                AlertDialog(
+                                  title: Text('パートナーと繋がってね'),
+                                )
+                              ],
+                            );
+                          }
+                      );
                     }
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return SimpleDialog(
-                            title:Text('test'),
-                            children: <Widget>[
-                              AlertDialog(
-                                title: Text('パートナーと繋がってね'),
-                              )
-                            ],
-                          );
-                        }
-                    );
                   }
                 ),
                 FlatButton(
@@ -149,21 +150,21 @@ class OnegaiFormState extends State<OnegaiForm> {
                         pressAttention1 = false;
                         pressAttention3 = false;
                       });
+                    } else {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              title:Text('test'),
+                              children: <Widget>[
+                                AlertDialog(
+                                  title: Text('パートナーと繋がってね'),
+                                )
+                              ],
+                            );
+                          }
+                      );
                     }
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return SimpleDialog(
-                            title:Text('test'),
-                            children: <Widget>[
-                              AlertDialog(
-                                title: Text('パートナーと繋がってね'),
-                              )
-                            ],
-                          );
-                        }
-                    );
-
                   },
                 ),
                 FlatButton(
