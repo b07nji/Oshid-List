@@ -18,6 +18,7 @@ final _userReference = Firestore.instance.collection('users');
 final auth = Authentication();
 final user = User();
 final qr = QRUtils();
+final formatter = DateFormat('E: M/d', "ja");
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -249,23 +250,20 @@ class _MyHomePageState extends State<MyHomePage>
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
-        
-        return _buildList(context, snapshot.data.documents);
+        return _buildList(context, sortByDate(snapshot.data.documents));
       },
     );
   }
 
-  Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
+  Widget _buildList(BuildContext context, List<dynamic> sortedList) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: snapshot.map((data) => _buildListItem(context,data)).toList(),
+      children: sortedList.map((data) => _buildListItem(context,data)).toList(),
     );
   }
 
-  Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
-    final record = Record.fromSnapshot(data);
-    var formatter = DateFormat('E: M/d', "ja");
-
+  Widget _buildListItem(BuildContext context, dynamic data) {
+    final record = Record.fromMap(data);
     return Padding(
       key: ValueKey(record.content),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -286,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage>
                * 今はとりあえずFirestoreのドキュメントを物理削除している
                */
 //              _onegaiReference.document(record.reference.documentID).updateData({'status': e});
-              _onegaiReference.document(record.reference.documentID).delete().then((value) {
+              _onegaiReference.document(record.onegaiId).delete().then((value) {
                 print("deleted");
               }).catchError((error) {
                 print(error);
@@ -299,6 +297,21 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
+  List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
+    List<Map<String, dynamic>>  sortedList = [];
+
+    list.forEach((snapshot) {
+      sortedList.add(snapshot.data);
+    });
+
+    sortedList.sort((a, b) {
+      DateTime dueDateA = a['dueDate'].toDate();
+      DateTime dueDateB = b['dueDate'].toDate();
+      return dueDateA.compareTo(dueDateB);
+    });
+
+    return sortedList;
+  }
 }
 
 class LabeledCheckbox extends StatelessWidget {
@@ -344,23 +357,26 @@ class LabeledCheckbox extends StatelessWidget {
 }
 
 class Record {
+  final String onegaiId;
   final String content;
   final DateTime dueDate;
   bool status = true;
   final DocumentReference reference;
 
   Record.fromMap(Map<String, dynamic> map, {this.reference}) :
-        assert(map['content'] != null),
-        assert((map['dueDate']) != null),
-        assert((map['status']) != null),
-        content = map['content'],
-        dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
-        status = map['status'];
+      assert(map['onegaiId'] != null),
+      assert(map['content'] != null),
+      assert((map['dueDate']) != null),
+      assert((map['status']) != null),
+      onegaiId = map['onegaiId'],
+      content = map['content'],
+      dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
+      status = map['status'];
 
-  Record.fromSnapshot(DocumentSnapshot snapshot): this.fromMap(
-      snapshot.data,
-      reference: snapshot.reference
-  );
+//  Record.fromSnapshot(dynamic snapshot): this.fromMap(
+//      snapshot.data,
+//      reference: snapshot.reference
+//  );
 
   @override
   String toString() => "Record<$content: $dueDate>";

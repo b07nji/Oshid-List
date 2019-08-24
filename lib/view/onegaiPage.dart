@@ -110,7 +110,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 FlatButton(
-                  color: pressAttention1 ? Colors.cyan : Colors.grey,
+                  color: pressAttention1 ? Color.fromRGBO(207, 167, 205, 1) : Color.fromRGBO(229, 229, 229, 1),
                   child: Text('パートナー'),
                   onPressed: () {
                     if (user.hasPartner) {
@@ -139,7 +139,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                   }
                 ),
                 FlatButton(
-                  color: pressAttention2 ? Colors.cyan : Colors.grey,
+                  color: pressAttention2 ? Color.fromRGBO(207, 167, 205, 1) : Color.fromRGBO(229, 229, 229, 1),
                   child: Text('ふたりで'),
                   onPressed: () {
 
@@ -167,7 +167,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                   },
                 ),
                 FlatButton(
-                    color: pressAttention3 ? Colors.cyan : Colors.grey,
+                    color: pressAttention3 ? Color.fromRGBO(207, 167, 205, 1) : Color.fromRGBO(229, 229, 229, 1),
                     child: Text('自分'),
                     onPressed: () {
                       setState(() {
