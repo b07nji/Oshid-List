@@ -3,22 +3,23 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants.dart';
 import 'onegaiPage.dart';
 
 import "package:intl/intl.dart";
 
-final _onegaiReference = Firestore.instance.collection('onegai');
-final _userReference = Firestore.instance.collection('users');
+final _onegaiReference = Firestore.instance.collection(constants.onegai);
+final _userReference = Firestore.instance.collection(constants.users);
 final auth = Authentication();
 final user = User();
 final qr = QRUtils();
 final formatter = DateFormat('E: M/d', "ja");
+final constants = Constants();
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -50,9 +51,9 @@ class _MyHomePageState extends State<MyHomePage>
     SharedPreferences.getInstance().then((SharedPreferences pref) {
       preferences = pref;
       setState(() {
-        user.uuid = preferences.getString('uuid');
-        user.hasPartner = preferences.getBool('hasPartner');
-        user.partnerId = preferences.getString('partnerId');
+        user.uuid = preferences.getString(constants.uuid);
+        user.hasPartner = preferences.getBool(constants.hasPartner);
+        user.partnerId = preferences.getString(constants.partnerId);
         print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
       });
     });
@@ -65,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage>
     return Scaffold(
       appBar: AppBar(
           title: Text('Oshid-List'),
-        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
+        backgroundColor: constants.violet,
       ),
       body: TabBarView(
         controller: _tabController,
@@ -90,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage>
                       ],
                     ),
                     decoration: BoxDecoration(
-                        color: Color.fromRGBO(207, 167, 205, 1)
+                        color: constants.violet
                     ),
                   ),
                 ),
@@ -165,17 +166,15 @@ class _MyHomePageState extends State<MyHomePage>
                     onPressed: () {
                       _userReference.document(user.uuid).snapshots().forEach((snapshots) {
                         Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-//                        test.keys.forEach((key) {
-//                          print(key + " : " + test[key].toString());
-//                        });
-                        auth.saveHasPartnerFlag(data['hasPartner']);
-                        user.hasPartner = data['hasPartner'];
+
+                        auth.saveHasPartnerFlag(data[constants.hasPartner]);
+                        user.hasPartner = data[constants.hasPartner];
                         auth.hasPartner().then((value) {
                           print('has partner?: ' + value.toString());
                         });
 
-                        auth.savePartnerInfo(data['partnerId']);
-                        user.partnerId = data['partnerId'];
+                        auth.savePartnerInfo(data[constants.partnerId]);
+                        user.partnerId = data[constants.partnerId];
                         auth.getPartnerId().then((value) {
                           print('what is partner id: ' + value);
                         });
@@ -205,7 +204,7 @@ class _MyHomePageState extends State<MyHomePage>
 
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, size: 30),
-        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
+        backgroundColor: constants.violet,
         onPressed: () {
           Navigator.push(
             context,
@@ -219,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage>
         tabs: tabs,
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
-        indicatorColor: Color.fromRGBO(207, 167, 205, 1),
+        indicatorColor: constants.violet,
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
@@ -243,10 +242,6 @@ class _MyHomePageState extends State<MyHomePage>
 
     }
     return StreamBuilder<QuerySnapshot> (
-      /**
-       * TODO: 時系列順にそーと
-       */
-
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
@@ -345,7 +340,7 @@ class LabeledCheckbox extends StatelessWidget {
              ),),
               Checkbox(
               value: value,
-              activeColor: Color.fromRGBO(207, 167, 205, 1),
+              activeColor: constants.violet,
               onChanged: (bool newValue) {
                 onChanged(newValue);
               },
