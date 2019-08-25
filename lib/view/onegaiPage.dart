@@ -6,10 +6,13 @@ import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import "package:intl/intl.dart";
 
-final _onegaiReference = Firestore.instance.collection('onegai');
-final _userReference = Firestore.instance.collection('users');
+import '../constants.dart';
+
+final _onegaiReference = Firestore.instance.collection(constants.onegai);
+final _userReference = Firestore.instance.collection(constants.users);
 final user = User();
 final auth = Authentication();
+final constants = Constants();
 
 class OnegaiCreator extends StatelessWidget {
   @override
@@ -34,11 +37,8 @@ class OnegaiForm extends StatefulWidget {
 class OnegaiFormState extends State<OnegaiForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _onegai = Onegai();
-///日付の表示変換
+// 日付の表示変換
   var formatter = DateFormat('M/d E', "ja");
-///繰り返しボタンリスト
-  List<String> _repeatation = ['毎日', '週に一度', '月に一度', '年に一度'];
-  String _selectedRepeatation;
 
   ///ボタンの色を変化させる
   bool pressAttention1 = true;
@@ -55,9 +55,9 @@ class OnegaiFormState extends State<OnegaiForm> {
       preferences = pref;
       setState(() {
         //TODO: リファクタ
-        user.uuid = preferences.getString('uuid');
-        user.hasPartner = preferences.getBool('hasPartner');
-        user.partnerId = preferences.getString('partnerId');
+        user.uuid = preferences.getString(constants.uuid);
+        user.hasPartner = preferences.getBool(constants.hasPartner);
+        user.partnerId = preferences.getString(constants.partnerId);
 
         auth.hasPartner().then((value) {
           if (!value) {
@@ -110,7 +110,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 FlatButton(
-                  color: pressAttention1 ? Color.fromRGBO(207, 167, 205, 1) : Color.fromRGBO(229, 229, 229, 1),
+                  color: pressAttention1 ? constants.violet : constants.grey,
                   child: Text('パートナー'),
                   onPressed: () {
                     if (user.hasPartner) {
@@ -140,7 +140,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                   }
                 ),
                 FlatButton(
-                  color: pressAttention2 ? Color.fromRGBO(207, 167, 205, 1) : Color.fromRGBO(229, 229, 229, 1),
+                  color: pressAttention2 ? constants.violet : constants.grey,
                   child: Text('ふたりで'),
                   onPressed: () {
 
@@ -168,7 +168,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                   },
                 ),
                 FlatButton(
-                    color: pressAttention3 ? Color.fromRGBO(207, 167, 205, 1) : Color.fromRGBO(229, 229, 229, 1),
+                    color: pressAttention3 ? constants.violet : constants.grey,
                     child: Text('自分'),
                     onPressed: () {
                       setState(() {
@@ -196,25 +196,6 @@ class OnegaiFormState extends State<OnegaiForm> {
               ),
             ),
 
-            SizedBox(
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton(
-                hint: Text('繰り返す？'),
-                value: _selectedRepeatation,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedRepeatation = newValue;
-                  });
-                },
-                items: _repeatation.map((location) {
-                  return DropdownMenuItem(
-                    child: new Text(location),
-                    value: location,
-                  );
-                }).toList(),
-              ),
-            ),),
-
             Container(
               child: RaisedButton(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -222,7 +203,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                   'おねがいする',
                   style: TextStyle(color: Colors.white),
                 ),
-                color: Color.fromRGBO(207, 167, 205, 1),
+                color: constants.violet,
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     Scaffold.of(context).showSnackBar(SnackBar(
@@ -293,8 +274,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                       /**
                        * TODO:[refactor]値の初期化
                        */
-                      user.uuid = preferences.getString('uuid');
-                      user.partnerId = preferences.getString('partnerId');
+                      user.uuid = preferences.getString(constants.uuid);
+                      user.partnerId = preferences.getString(constants.partnerId);
                       Navigator.of(context).pop('/home');
 
                     }

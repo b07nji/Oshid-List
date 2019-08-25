@@ -4,8 +4,12 @@ import 'package:oshid_list_v1/view/home.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'constants.dart';
 import 'entity/user.dart';
 import 'package:oshid_list_v1/view/loginPage.dart';
+
+final constants = Constants();
+final user = User();
 
 void main() {
   runApp(MyApp());
@@ -18,7 +22,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-  final user = User();
   Widget _defaultHome = MyHomePage();
 
   SharedPreferences preferences;
@@ -30,7 +33,7 @@ class _MyAppState extends State<MyApp> {
     SharedPreferences.getInstance().then((SharedPreferences pref) {
       preferences = pref;
       setState(() {
-        user.uuid = preferences.getString('uuid');
+        user.uuid = preferences.getString(constants.uuid);
       });
 
       if (user.uuid == null) {
