@@ -4,9 +4,12 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:uuid/uuid.dart';
 
+import '../constants.dart';
+
 final auth = Authentication();
 final user = User();
-final _userReference = Firestore.instance.collection('users');
+final constants = Constants();
+final _userReference = Firestore.instance.collection(constants.users);
 
 class LoginPage extends StatefulWidget {
 
@@ -24,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("ログイン"),
-        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
+        backgroundColor: constants.violet,
       ),
       body: Center(
         child: Form(
