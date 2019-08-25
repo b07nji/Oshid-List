@@ -38,7 +38,8 @@ class OnegaiFormState extends State<OnegaiForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _onegai = Onegai();
 // 日付の表示変換
-  var formatter = DateFormat('M/d E', "ja");
+  final formatter = DateFormat('M/d E', "ja");
+  var _radVal = Status.NotYours;
 
   SharedPreferences preferences;
 
@@ -49,7 +50,11 @@ class OnegaiFormState extends State<OnegaiForm> {
     SharedPreferences.getInstance().then((SharedPreferences pref) {
       preferences = pref;
       setState(() {
-        //TODO: リファクタ
+        user.hasPartner = preferences.getBool(constants.hasPartner);
+        if (user.hasPartner) {
+          _radVal = Status.NotMine;
+        }
+
         user.uuid = preferences.getString(constants.uuid);
         user.partnerId = preferences.getString(constants.partnerId);
 
@@ -69,24 +74,54 @@ class OnegaiFormState extends State<OnegaiForm> {
     }
   }
 
-  // デフォは自分のid
-  var _radVal = Status.NotYours;
 
   void _onChanged(value) {
     setState(() {
-      _radVal = value;
-      if (_radVal == Status.NotYours) {
-        user.uuid = 'not yours';
-        user.partnerId = preferences.getString(constants.partnerId);
-
-      } else if (_radVal == Status.NotMine) {
-        user.partnerId = 'not mine';
-        user.uuid = preferences.getString(constants.uuid);
-
-      } else {
-        user.uuid = preferences.getString(constants.uuid);
-        user.partnerId = preferences.getString(constants.partnerId);
-
+      switch (_radVal) {
+        case Status.NotMine:
+          _radVal = value;
+          user.uuid = 'not yours';
+          user.partnerId = preferences.getString(constants.partnerId);
+          break;
+        case Status.NotYours:
+          if (user.hasPartner) {
+            _radVal = value;
+            user.partnerId = 'not mine';
+            user.uuid = preferences.getString(constants.uuid);
+          }
+          showDialog(
+              context: context,
+              builder: (context) {
+                return SimpleDialog(
+                  title:Text('test'),
+                  children: <Widget>[
+                    AlertDialog(
+                      title: Text('パートナーと繋がってね'),
+                    )
+                  ],
+                );
+              }
+          );
+          break;
+        case Status.Together:
+          if (user.hasPartner) {
+            user.uuid = preferences.getString(constants.uuid);
+            user.partnerId = preferences.getString(constants.partnerId);
+          }
+          showDialog(
+              context: context,
+              builder: (context) {
+                return SimpleDialog(
+                  title:Text('test'),
+                  children: <Widget>[
+                    AlertDialog(
+                      title: Text('パートナーと繋がってね'),
+                    )
+                  ],
+                );
+              }
+          );
+          break;
       }
     });
   }
@@ -117,8 +152,8 @@ class OnegaiFormState extends State<OnegaiForm> {
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                      title: Text('自分'),
-                      value: Status.NotYours,
+                      title: Text('パートナー'),
+                      value: Status.NotMine,
                       groupValue: _radVal,
                       activeColor: constants.violet,
                       onChanged: _onChanged),
@@ -129,8 +164,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                       activeColor: constants.violet,
                       onChanged: _onChanged),
                   RadioListTile(
-                      title: Text('パートナー'),
-                      value: Status.NotMine,
+                      title: Text('自分'),
+                      value: Status.NotYours,
                       groupValue: _radVal,
                       activeColor: constants.violet,
                       onChanged: _onChanged),
@@ -138,7 +173,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               ),
             ),
 
-            Text('いつまでに? ${formatter.format(_onegai.dueDate)}'),
+            Text('いつまでに?'),
             SizedBox(
               width: 10.0,
               child: RaisedButton.icon(
