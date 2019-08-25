@@ -18,4 +18,4 @@ class Constants {
 }
 
 // onegaiPage
-enum Status { NotYours, NotMine, Together }
+enum Status { Yours, Mine, Together }

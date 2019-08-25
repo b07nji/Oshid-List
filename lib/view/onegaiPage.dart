@@ -37,9 +37,9 @@ class OnegaiForm extends StatefulWidget {
 class OnegaiFormState extends State<OnegaiForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _onegai = Onegai();
-// 日付の表示変換
+  // 日付の表示変換
   final formatter = DateFormat('M/d E', "ja");
-  var _radVal = Status.NotYours;
+  var _radVal = Status.Mine;
 
   SharedPreferences preferences;
 
@@ -52,7 +52,7 @@ class OnegaiFormState extends State<OnegaiForm> {
       setState(() {
         user.hasPartner = preferences.getBool(constants.hasPartner);
         if (user.hasPartner) {
-          _radVal = Status.NotMine;
+          _radVal = Status.Yours;
         }
 
         user.uuid = preferences.getString(constants.uuid);
@@ -78,49 +78,48 @@ class OnegaiFormState extends State<OnegaiForm> {
   void _onChanged(value) {
     setState(() {
       switch (_radVal) {
-        case Status.NotMine:
+        case Status.Mine:
           _radVal = value;
-          user.uuid = 'not yours';
-          user.partnerId = preferences.getString(constants.partnerId);
+//          user.uuid = 'not yours';
+          user.uuid = preferences.getString(constants.uuid);
+//          user.partnerId = preferences.getString(constants.partnerId);
+          print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
           break;
-        case Status.NotYours:
+        case Status.Yours:
           if (user.hasPartner) {
             _radVal = value;
-            user.partnerId = 'not mine';
-            user.uuid = preferences.getString(constants.uuid);
+//            user.partnerId = 'not mine';
+            user.partnerId = preferences.getString(constants.partnerId);
+            print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
+
+          } else {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return SimpleDialog(
+                    title:Text('パートナーと繋がってね')
+                  );
+                }
+            );
           }
-          showDialog(
-              context: context,
-              builder: (context) {
-                return SimpleDialog(
-                  title:Text('test'),
-                  children: <Widget>[
-                    AlertDialog(
-                      title: Text('パートナーと繋がってね'),
-                    )
-                  ],
-                );
-              }
-          );
           break;
         case Status.Together:
           if (user.hasPartner) {
+            _radVal = value;
             user.uuid = preferences.getString(constants.uuid);
             user.partnerId = preferences.getString(constants.partnerId);
+            print('together: uuid ' + user.uuid + ', partner ' + user.partnerId);
+
+          } else {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return SimpleDialog(
+                      title:Text('パートナーと繋がってね')
+                  );
+                }
+            );
           }
-          showDialog(
-              context: context,
-              builder: (context) {
-                return SimpleDialog(
-                  title:Text('test'),
-                  children: <Widget>[
-                    AlertDialog(
-                      title: Text('パートナーと繋がってね'),
-                    )
-                  ],
-                );
-              }
-          );
           break;
       }
     });
@@ -153,7 +152,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                 children: <Widget>[
                   RadioListTile(
                       title: Text('パートナー'),
-                      value: Status.NotMine,
+                      value: Status.Yours,
                       groupValue: _radVal,
                       activeColor: constants.violet,
                       onChanged: _onChanged),
@@ -165,7 +164,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                       onChanged: _onChanged),
                   RadioListTile(
                       title: Text('自分'),
-                      value: Status.NotYours,
+                      value: Status.Mine,
                       groupValue: _radVal,
                       activeColor: constants.violet,
                       onChanged: _onChanged),
@@ -206,7 +205,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                     //　TODO: リファクタ
 
                     // 自分
-                    if (user.partnerId == 'not yours') {
+                    if (_radVal == Status.Mine) {
 
                       _onegaiReference.add(
                           {
@@ -226,7 +225,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                       });
 
                       // パートナー
-                    } else if(user.uuid == 'not mine') {
+                    } else if(_radVal == Status.Yours) {
 
                       _onegaiReference.add(
                           {
