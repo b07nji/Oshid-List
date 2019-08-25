@@ -20,7 +20,7 @@ class OnegaiCreator extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('おねがいする'),
-        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
+        backgroundColor: constants.violet,
       ),
       body: Center(
         child: OnegaiForm(),
@@ -40,11 +40,6 @@ class OnegaiFormState extends State<OnegaiForm> {
 // 日付の表示変換
   var formatter = DateFormat('M/d E', "ja");
 
-  ///ボタンの色を変化させる
-  bool pressAttention1 = true;
-  bool pressAttention2 = false;
-  bool pressAttention3 = false;
-
   SharedPreferences preferences;
 
   ///起動時に呼ばれる
@@ -56,32 +51,10 @@ class OnegaiFormState extends State<OnegaiForm> {
       setState(() {
         //TODO: リファクタ
         user.uuid = preferences.getString(constants.uuid);
-        user.hasPartner = preferences.getBool(constants.hasPartner);
         user.partnerId = preferences.getString(constants.partnerId);
 
-        auth.hasPartner().then((value) {
-          if (!value) {
-            user.partnerId = 'not yours';
-            print(user.partnerId);
-          }
-        });
-
-        pressAttention1 = user.hasPartner;
-        pressAttention3 = !user.hasPartner;
       });
     });
-  }
-
-  var _uuid = user.uuid;
-
-  void _onChanged(var uuid) {
-    setState(() {
-      _uuid = uuid;
-    });
-  }
-
-  String test() {
-
   }
 
   Future _selectDate() async {
@@ -94,6 +67,28 @@ class OnegaiFormState extends State<OnegaiForm> {
     if (picked != null) {
       setState(() => _onegai.dueDate = picked);
     }
+  }
+
+  // デフォは自分のid
+  var _radVal = Status.NotYours;
+
+  void _onChanged(value) {
+    setState(() {
+      _radVal = value;
+      if (_radVal == Status.NotYours) {
+        user.uuid = 'not yours';
+        user.partnerId = preferences.getString(constants.partnerId);
+
+      } else if (_radVal == Status.NotMine) {
+        user.partnerId = 'not mine';
+        user.uuid = preferences.getString(constants.uuid);
+
+      } else {
+        user.uuid = preferences.getString(constants.uuid);
+        user.partnerId = preferences.getString(constants.partnerId);
+
+      }
+    });
   }
 
   @override
@@ -122,118 +117,26 @@ class OnegaiFormState extends State<OnegaiForm> {
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                    title: Text('自分'),
-                    value: user.uuid,
-                    groupValue: user.uuid,
-                    onChanged: (value) {
-                      setState(() {
-                         user.uuid = value;
-                         print(value);
-                      });
-                    },
-                  ),
+                      title: Text('自分'),
+                      value: Status.NotYours,
+                      groupValue: _radVal,
+                      activeColor: constants.violet,
+                      onChanged: _onChanged),
                   RadioListTile(
-                    title: Text('ふたりで'),
-                    value: user.uuid,
-                    groupValue: _uuid,
-                    onChanged: (value) {
-                      setState(() {
-                        user.uuid = value;
-                        print(value);
-                      });
-                    },
-                  ),
+                      title: Text('ふたりで'),
+                      value: Status.Together,
+                      groupValue: _radVal,
+                      activeColor: constants.violet,
+                      onChanged: _onChanged),
                   RadioListTile(
-                    title: Text('パートナー'),
-                    value: 'value',
-                    groupValue: 'groupValue',
-                    selected: false,
-                    onChanged: (value) {
-                      setState(() {
-                        user.uuid = value;
-                        print(value);
-                      });
-                    },
-                  ),
+                      title: Text('パートナー'),
+                      value: Status.NotMine,
+                      groupValue: _radVal,
+                      activeColor: constants.violet,
+                      onChanged: _onChanged),
                 ],
               ),
             ),
-//
-//            Row(
-//              mainAxisAlignment: MainAxisAlignment.center,
-//              children: <Widget>[
-//                FlatButton(
-//                  color: pressAttention1 ? constants.violet : constants.grey,
-//                  child: Text('パートナー'),
-//                  onPressed: () {
-//                    if (user.hasPartner) {
-//                      setState(() {
-//                        pressAttention1 = !pressAttention1;
-//                        pressAttention2 = false;
-//                        pressAttention3 = false;
-//
-//                        //TODO: partnerID = 'no partner'の時にdisable
-//                        user.uuid = 'not mine';
-//                      });
-//                    } else {
-//                      showDialog(
-//                          context: context,
-//                          builder: (context) {
-//                            return SimpleDialog(
-//                              title:Text('test'),
-//                              children: <Widget>[
-//                                AlertDialog(
-//                                  title: Text('パートナーと繋がってね'),
-//                                )
-//                              ],
-//                            );
-//                          }
-//                      );
-//                    }
-//                  }
-//                ),
-//                FlatButton(
-//                  color: pressAttention2 ? constants.violet : constants.grey,
-//                  child: Text('ふたりで'),
-//                  onPressed: () {
-//
-//                    if (user.hasPartner) {
-//                      setState(() {
-//                        pressAttention2 = !pressAttention2;
-//                        pressAttention1 = false;
-//                        pressAttention3 = false;
-//                      });
-//                    } else {
-//                      showDialog(
-//                          context: context,
-//                          builder: (context) {
-//                            return SimpleDialog(
-//                              title:Text('test'),
-//                              children: <Widget>[
-//                                AlertDialog(
-//                                  title: Text('パートナーと繋がってね'),
-//                                )
-//                              ],
-//                            );
-//                          }
-//                      );
-//                    }
-//                  },
-//                ),
-//                FlatButton(
-//                    color: pressAttention3 ? constants.violet : constants.grey,
-//                    child: Text('自分'),
-//                    onPressed: () {
-//                      setState(() {
-//                        pressAttention3 = !pressAttention3;
-//                        pressAttention1 = false;
-//                        pressAttention2 = false;
-//                        user.partnerId = 'not yours';
-//                      });
-//                    }
-//                )
-//              ],
-//            ),
 
             Text('いつまでに? ${formatter.format(_onegai.dueDate)}'),
             SizedBox(
@@ -264,11 +167,12 @@ class OnegaiFormState extends State<OnegaiForm> {
                     ));
                     _formKey.currentState.save();
 
-                    //TODO: documentIDをフィールドに含める必要ある？
-                    //TODO: リファクタ
+                    // TODO: documentIDをフィールドに含める必要ある？
+                    //　TODO: リファクタ
 
+                    // 自分
                     if (user.partnerId == 'not yours') {
-                      //to me
+
                       _onegaiReference.add(
                           {
                             'content': _onegai.content,
@@ -286,8 +190,9 @@ class OnegaiFormState extends State<OnegaiForm> {
                         Navigator.of(context).pop('/home');
                       });
 
+                      // パートナー
                     } else if(user.uuid == 'not mine') {
-                      //to partner
+
                       _onegaiReference.add(
                           {
                             'content': _onegai.content,
@@ -304,8 +209,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                         );
                         Navigator.of(context).pop('/home');
                       });
+                      // ふたりで
                     } else {
-                      //together
                       [user.uuid, user.partnerId].forEach((uuid) {
                         _onegaiReference.add(
                             {

@@ -14,4 +14,8 @@ class Constants {
   // 色
   final violet = Color.fromRGBO(207, 167, 205, 1);
   final grey = Color.fromRGBO(229, 229, 229, 1);
+
 }
+
+// onegaiPage
+enum Status { NotYours, NotMine, Together }
