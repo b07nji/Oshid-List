@@ -20,7 +20,7 @@ class OnegaiCreator extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('おねがいする'),
-        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
+        backgroundColor: constants.violet,
       ),
       body: Center(
         child: OnegaiForm(),
