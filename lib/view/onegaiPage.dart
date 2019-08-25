@@ -20,7 +20,7 @@ class OnegaiCreator extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('おねがいする'),
-        backgroundColor: constants.violet,
+        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
       ),
       body: Center(
         child: OnegaiForm(),
@@ -72,6 +72,18 @@ class OnegaiFormState extends State<OnegaiForm> {
     });
   }
 
+  var _uuid = user.uuid;
+
+  void _onChanged(var uuid) {
+    setState(() {
+      _uuid = uuid;
+    });
+  }
+
+  String test() {
+
+  }
+
   Future _selectDate() async {
     DateTime picked = await showDatePicker(
         locale: Locale("ja"),
@@ -105,82 +117,123 @@ class OnegaiFormState extends State<OnegaiForm> {
             ),
 
             Text('誰に?'),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                FlatButton(
-                  color: pressAttention1 ? constants.violet : constants.grey,
-                  child: Text('パートナー'),
-                  onPressed: () {
-                    if (user.hasPartner) {
+            Container(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                children: <Widget>[
+                  RadioListTile(
+                    title: Text('自分'),
+                    value: user.uuid,
+                    groupValue: user.uuid,
+                    onChanged: (value) {
                       setState(() {
-                        pressAttention1 = !pressAttention1;
-                        pressAttention2 = false;
-                        pressAttention3 = false;
-
-                        //TODO: partnerID = 'no partner'の時にdisable
-                        user.uuid = 'not mine';
+                         user.uuid = value;
+                         print(value);
                       });
-                    } else {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('test'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーと繋がってね'),
-                                )
-                              ],
-                            );
-                          }
-                      );
-                    }
-                  }
-                ),
-                FlatButton(
-                  color: pressAttention2 ? constants.violet : constants.grey,
-                  child: Text('ふたりで'),
-                  onPressed: () {
-
-                    if (user.hasPartner) {
+                    },
+                  ),
+                  RadioListTile(
+                    title: Text('ふたりで'),
+                    value: user.uuid,
+                    groupValue: _uuid,
+                    onChanged: (value) {
                       setState(() {
-                        pressAttention2 = !pressAttention2;
-                        pressAttention1 = false;
-                        pressAttention3 = false;
+                        user.uuid = value;
+                        print(value);
                       });
-                    } else {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('test'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーと繋がってね'),
-                                )
-                              ],
-                            );
-                          }
-                      );
-                    }
-                  },
-                ),
-                FlatButton(
-                    color: pressAttention3 ? constants.violet : constants.grey,
-                    child: Text('自分'),
-                    onPressed: () {
+                    },
+                  ),
+                  RadioListTile(
+                    title: Text('パートナー'),
+                    value: 'value',
+                    groupValue: 'groupValue',
+                    selected: false,
+                    onChanged: (value) {
                       setState(() {
-                        pressAttention3 = !pressAttention3;
-                        pressAttention1 = false;
-                        pressAttention2 = false;
-                        user.partnerId = 'not yours';
+                        user.uuid = value;
+                        print(value);
                       });
-                    }
-                )
-              ],
+                    },
+                  ),
+                ],
+              ),
             ),
+//
+//            Row(
+//              mainAxisAlignment: MainAxisAlignment.center,
+//              children: <Widget>[
+//                FlatButton(
+//                  color: pressAttention1 ? constants.violet : constants.grey,
+//                  child: Text('パートナー'),
+//                  onPressed: () {
+//                    if (user.hasPartner) {
+//                      setState(() {
+//                        pressAttention1 = !pressAttention1;
+//                        pressAttention2 = false;
+//                        pressAttention3 = false;
+//
+//                        //TODO: partnerID = 'no partner'の時にdisable
+//                        user.uuid = 'not mine';
+//                      });
+//                    } else {
+//                      showDialog(
+//                          context: context,
+//                          builder: (context) {
+//                            return SimpleDialog(
+//                              title:Text('test'),
+//                              children: <Widget>[
+//                                AlertDialog(
+//                                  title: Text('パートナーと繋がってね'),
+//                                )
+//                              ],
+//                            );
+//                          }
+//                      );
+//                    }
+//                  }
+//                ),
+//                FlatButton(
+//                  color: pressAttention2 ? constants.violet : constants.grey,
+//                  child: Text('ふたりで'),
+//                  onPressed: () {
+//
+//                    if (user.hasPartner) {
+//                      setState(() {
+//                        pressAttention2 = !pressAttention2;
+//                        pressAttention1 = false;
+//                        pressAttention3 = false;
+//                      });
+//                    } else {
+//                      showDialog(
+//                          context: context,
+//                          builder: (context) {
+//                            return SimpleDialog(
+//                              title:Text('test'),
+//                              children: <Widget>[
+//                                AlertDialog(
+//                                  title: Text('パートナーと繋がってね'),
+//                                )
+//                              ],
+//                            );
+//                          }
+//                      );
+//                    }
+//                  },
+//                ),
+//                FlatButton(
+//                    color: pressAttention3 ? constants.violet : constants.grey,
+//                    child: Text('自分'),
+//                    onPressed: () {
+//                      setState(() {
+//                        pressAttention3 = !pressAttention3;
+//                        pressAttention1 = false;
+//                        pressAttention2 = false;
+//                        user.partnerId = 'not yours';
+//                      });
+//                    }
+//                )
+//              ],
+//            ),
 
             Text('いつまでに? ${formatter.format(_onegai.dueDate)}'),
             SizedBox(
