@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:oshid_list_v1/entity/user.dart';
@@ -30,6 +31,65 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
+//  // 以下をStateの中に記述
+//  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+//
+//  @override
+//  void initState() {
+//    super.initState();
+//    _firebaseMessaging.configure(
+//      onMessage: (Map<String, dynamic> message) async {
+//        print("onMessage: $message");
+//        _buildDialog(context, "onMessage");
+//      },
+//      onLaunch: (Map<String, dynamic> message) async {
+//        print("onLaunch: $message");
+//        _buildDialog(context, "onLaunch");
+//      },
+//      onResume: (Map<String, dynamic> message) async {
+//        print("onResume: $message");
+//        _buildDialog(context, "onResume");
+//      },
+//    );
+//    _firebaseMessaging.requestNotificationPermissions(
+//        const IosNotificationSettings(sound: true, badge: true, alert: true));
+//    _firebaseMessaging.onIosSettingsRegistered
+//        .listen((IosNotificationSettings settings) {
+//      print("Settings registered: $settings");
+//    });
+//    _firebaseMessaging.getToken().then((String token) {
+//      assert(token != null);
+//      print("Push Messaging token: $token");
+//    });
+//    _firebaseMessaging.subscribeToTopic("/topics/all");
+//  }
+//
+//  // ダイアログを表示するメソッド
+//  void _buildDialog(BuildContext context, String message) {
+//    showDialog(
+//        context: context,
+//        barrierDismissible: false,
+//        builder: (BuildContext context) {
+//          return new AlertDialog(
+//            content: new Text("Message: $message"),
+//            actions: <Widget>[
+//              new FlatButton(
+//                child: const Text('CLOSE'),
+//                onPressed: () {
+//                  Navigator.pop(context, false);
+//                },
+//              ),
+//              new FlatButton(
+//                child: const Text('SHOW'),
+//                onPressed: () {
+//                  Navigator.pop(context, true);
+//                },
+//              ),
+//            ],
+//          );
+//        }
+//    );
+//  }
 
   final List<Tab> tabs = <Tab> [
     Tab(

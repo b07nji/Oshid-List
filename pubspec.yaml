@@ -19,9 +19,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-#japanese translation
+  #japanese translation
   flutter_localizations:
       sdk: flutter
+
+  #firebase cloud messaging
+  firebase_messaging: ^5.1.4
 
   #generate QR code
   qr_flutter: ^2.1.0+55
