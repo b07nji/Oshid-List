@@ -8,6 +8,8 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert' show Encoding, json;
+import 'package:http/http.dart' as http;
 
 import '../constants.dart';
 import 'onegaiPage.dart';
@@ -31,66 +33,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
-//  // 以下をStateの中に記述
-//  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
-//
-//  @override
-//  void initState() {
-//    super.initState();
-//    _firebaseMessaging.configure(
-//      onMessage: (Map<String, dynamic> message) async {
-//        print("onMessage: $message");
-//        _buildDialog(context, "onMessage");
-//      },
-//      onLaunch: (Map<String, dynamic> message) async {
-//        print("onLaunch: $message");
-//        _buildDialog(context, "onLaunch");
-//      },
-//      onResume: (Map<String, dynamic> message) async {
-//        print("onResume: $message");
-//        _buildDialog(context, "onResume");
-//      },
-//    );
-//    _firebaseMessaging.requestNotificationPermissions(
-//        const IosNotificationSettings(sound: true, badge: true, alert: true));
-//    _firebaseMessaging.onIosSettingsRegistered
-//        .listen((IosNotificationSettings settings) {
-//      print("Settings registered: $settings");
-//    });
-//    _firebaseMessaging.getToken().then((String token) {
-//      assert(token != null);
-//      print("Push Messaging token: $token");
-//    });
-//    _firebaseMessaging.subscribeToTopic("/topics/all");
-//  }
-//
-//  // ダイアログを表示するメソッド
-//  void _buildDialog(BuildContext context, String message) {
-//    showDialog(
-//        context: context,
-//        barrierDismissible: false,
-//        builder: (BuildContext context) {
-//          return new AlertDialog(
-//            content: new Text("Message: $message"),
-//            actions: <Widget>[
-//              new FlatButton(
-//                child: const Text('CLOSE'),
-//                onPressed: () {
-//                  Navigator.pop(context, false);
-//                },
-//              ),
-//              new FlatButton(
-//                child: const Text('SHOW'),
-//                onPressed: () {
-//                  Navigator.pop(context, true);
-//                },
-//              ),
-//            ],
-//          );
-//        }
-//    );
-//  }
-
+  // 以下をStateの中に記述
+  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
@@ -115,10 +59,93 @@ class _MyHomePageState extends State<MyHomePage>
         user.hasPartner = preferences.getBool(constants.hasPartner);
         user.partnerId = preferences.getString(constants.partnerId);
         print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
+
+        //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
+        if (user.hasPartner) {
+          //FCM設定
+          _firebaseMessaging.configure(
+            onMessage: (Map<String, dynamic> message) async {
+              print("onMessage: $message");
+              _buildDialog(context, "onMessage");
+            },
+            onLaunch: (Map<String, dynamic> message) async {
+              print("onLaunch: $message");
+              _buildDialog(context, "onLaunch");
+            },
+            onResume: (Map<String, dynamic> message) async {
+              print("onResume: $message");
+              _buildDialog(context, "onResume");
+            },
+          );
+          _firebaseMessaging.requestNotificationPermissions(
+              const IosNotificationSettings(sound: true, badge: true, alert: true));
+          _firebaseMessaging.onIosSettingsRegistered
+              .listen((IosNotificationSettings settings) {
+            print("Settings registered: $settings");
+          });
+          _firebaseMessaging.getToken().then((String token) {
+            assert(token != null);
+            print("Push Messaging token: $token");
+          });
+          _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+        }
       });
     });
+
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
+
+  }
+  void _buildDialog(BuildContext context, String message) {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return new AlertDialog(
+            content: new Text("Message: $message"),
+            actions: <Widget>[
+              new FlatButton(
+                child: const Text('パートナーと繋がりました'),
+                onPressed: () {
+                  _userReference.document(user.uuid).updateData({
+                    'hasPartner': user.hasPartner,
+                    'partnerId': user.partnerId
+                  });
+                },
+              ),
+            ],
+          );
+        }
+    );
+  }
+
+  postQrScannedNotification() async {
+    var serverKey = constants.serverKey;
+    final postUrl = 'https://fcm.googleapis.com/fcm/send';
+
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": "テストです", "body": "Titileです"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization':
+      'key=$serverKey'
+    };
+
+    final response = await http.post(
+      postUrl,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
   }
 
   @override
@@ -164,10 +191,8 @@ class _MyHomePageState extends State<MyHomePage>
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
-
                         auth.saveHasPartnerFlag(true);
                         auth.savePartnerInfo(partnerId);
-
                         user.hasPartner = true;
                         user.partnerId = partnerId;
 
@@ -178,35 +203,26 @@ class _MyHomePageState extends State<MyHomePage>
                               showDialog(
                                   context: context,
                                   builder: (context) {
-                                    return SimpleDialog(
-                                      title:Text('test'),
-                                      children: <Widget>[
-                                        AlertDialog(
-                                          title: Text('uuid: ' + user.uuid + "/ partner id: " + user.partnerId),
-                                        )
+                                    return new AlertDialog(
+                                      content: new Text("test"),
+                                      actions: <Widget>[
+                                        new FlatButton(
+                                          child: const Text('繋がる'),
+                                          onPressed: () {
+                                            //TODO!!!!!!!!!!
+                                            postQrScannedNotification();
+                                            AlertDialog(
+                                              content: new Text("called: " + user.partnerId),
+                                              actions: <Widget>[
+
+                                              ],
+                                            );
+                                          }
+                                        ),
                                       ],
                                     );
                                   }
                               );
-                        });
-
-                        _userReference.document(user.partnerId).updateData({
-                          'hasPartner': user.hasPartner,
-                          'partnerId': user.uuid
-                        }).whenComplete(() {
-                          showDialog(
-                              context: context,
-                              builder: (context) {
-                                return SimpleDialog(
-                                  title:Text('test'),
-                                  children: <Widget>[
-                                    AlertDialog(
-                                      title: Text('パートナーに反映'),
-                                    )
-                                  ],
-                                );
-                              }
-                          );
                         });
 
                       });
@@ -216,45 +232,6 @@ class _MyHomePageState extends State<MyHomePage>
 
                 Container(
                   child: qr.generateQr(user.uuid),
-                ),
-                /**
-                 * TODO: [WIP]CLoud Messaginで処理するようにする
-                 */
-                Container(
-                  child: RaisedButton(
-                    child: Text('パートナー情報反映'),
-                    onPressed: () {
-                      _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-                        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-
-                        auth.saveHasPartnerFlag(data[constants.hasPartner]);
-                        user.hasPartner = data[constants.hasPartner];
-                        auth.hasPartner().then((value) {
-                          print('has partner?: ' + value.toString());
-                        });
-
-                        auth.savePartnerInfo(data[constants.partnerId]);
-                        user.partnerId = data[constants.partnerId];
-                        auth.getPartnerId().then((value) {
-                          print('what is partner id: ' + value);
-                        });
-                      });
-
-
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('test'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーに反映'),
-                                )
-                              ],
-                            );
-                          }
-                      );
-                    }),
                 ),
               ],
             ),
