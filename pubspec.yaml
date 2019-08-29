@@ -19,9 +19,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-#japanese translation
+  #japanese translation
   flutter_localizations:
       sdk: flutter
+
+  #firebase cloud messaging
+  #バージョンの互換性でエラー発生する. ひとまずリンクの解決法でしのぐ.
+  #https://stackoverflow.com/questions/51839721/the-library-com-google-firebasefirebase-iid-is-being-requested-by-various-other
+  firebase_messaging: ^5.1.4
+
+  #send push notification
+  http: ^0.12.0+2
 
   #generate QR code
   qr_flutter: ^2.1.0+55

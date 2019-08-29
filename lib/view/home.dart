@@ -1,12 +1,15 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert' show Encoding, json;
+import 'package:http/http.dart' as http;
 
 import '../constants.dart';
 import 'onegaiPage.dart';
@@ -20,6 +23,7 @@ final user = User();
 final qr = QRUtils();
 final formatter = DateFormat('E: M/d', "ja");
 final constants = Constants();
+var partnerName = 'パートナーがいません';
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -30,15 +34,16 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
-
+  // 以下をStateの中に記述
+  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
-      text: '自分',
+      text: constants.me,
         ),
     Tab(
       key: Key('1'),
-      text: 'パートナー',
+      text: constants.partner,
     )
   ];
   TabController _tabController;
@@ -52,20 +57,129 @@ class _MyHomePageState extends State<MyHomePage>
       preferences = pref;
       setState(() {
         user.uuid = preferences.getString(constants.uuid);
+        user.userName = preferences.getString(constants.userName);
         user.hasPartner = preferences.getBool(constants.hasPartner);
         user.partnerId = preferences.getString(constants.partnerId);
+        if (user.hasPartner) partnerName = preferences.getString(constants.partnerName);
         print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
+
+        //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
+
+        //FCM設定
+        _firebaseMessaging.configure(
+          onMessage: (Map<String, dynamic> message) async {
+            print("onMessage: $message");
+            _buildPushDialog(context, message);
+          },
+          onLaunch: (Map<String, dynamic> message) async {
+            print("onLaunch: $message");
+            _buildPushDialog(context, message);
+          },
+          onResume: (Map<String, dynamic> message) async {
+            print("onResume: $message");
+            _buildPushDialog(context, message);
+          },
+        );
+        _firebaseMessaging.requestNotificationPermissions(
+            const IosNotificationSettings(sound: true, badge: true, alert: true));
+        _firebaseMessaging.onIosSettingsRegistered
+            .listen((IosNotificationSettings settings) {
+          print("Settings registered: $settings");
+        });
+        _firebaseMessaging.getToken().then((String token) {
+          assert(token != null);
+          print("Push Messaging token: $token");
+        });
+        _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
       });
     });
+
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
+
+  }
+  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text(message['notification']['title']),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                fetchChangedUserInfo();
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        )
+    );
+  }
+
+  void postQrScannedNotification() async {
+    var serverKey = constants.serverKey;
+
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": user.userName + "さんと繋がりました！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
+  }
+
+  void fetchChangedUserInfo() {
+    _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+
+      auth.saveHasPartnerFlag(data[constants.hasPartner]);
+      user.hasPartner = data[constants.hasPartner];
+      auth.hasPartner().then((value) {
+        print('has partner?: ' + value.toString());
+      });
+
+      auth.savePartnerId(data[constants.partnerId]);
+      user.partnerId = data[constants.partnerId];
+      auth.getPartnerId().then((value) {
+        print('what is partner id: ' + value);
+
+      });
+
+      _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+        auth.savePartnerName(data[constants.userName]);
+        auth.getPartnerName().then((value) {
+          setState(() {
+            partnerName = value;
+          });
+        });
+      });
+
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text('Oshid-List'),
+        title: Text('Oshid-List'),
         backgroundColor: constants.violet,
       ),
       body: TabBarView(
@@ -96,59 +210,72 @@ class _MyHomePageState extends State<MyHomePage>
                   ),
                 ),
 
+                //TODO: エミュレータだとnullエラーが起こる
+                Container(
+                  child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+                ),
+
+                Container(
+                  child: Text(partnerName),
+
+                ),
+
                 Container(
                   child: RaisedButton(
                     child: Text('パートナーと繋がる'),
                     onPressed: () {
                       qr.readQr().then((partnerId) {
+
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
-
                         auth.saveHasPartnerFlag(true);
-                        auth.savePartnerInfo(partnerId);
-
+                        auth.savePartnerId(partnerId);
                         user.hasPartner = true;
                         user.partnerId = partnerId;
 
-                        _userReference.document(user.uuid).updateData({
+                        /**
+                         * TODO: パートナー名取得
+                         */
+                        _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+                          Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+                          auth.savePartnerName(data[constants.userName]);
+                          partnerName = data[constants.userName];
+
+                          //TODO: リファクタ
+                          //自分のパートナー情報更新
+                          _userReference.document(user.uuid).updateData({
+                            'hasPartner': user.hasPartner,
+                            'partnerId': user.partnerId
+                          }).whenComplete(() {
+                            //相手のパートナー情報更新
+                            _userReference.document(user.partnerId).updateData({
                               'hasPartner': user.hasPartner,
-                              'partnerId': user.partnerId
+                              'partnerId': user.uuid
                             }).whenComplete(() {
                               showDialog(
                                   context: context,
                                   builder: (context) {
-                                    return SimpleDialog(
-                                      title:Text('test'),
-                                      children: <Widget>[
-                                        AlertDialog(
-                                          title: Text('uuid: ' + user.uuid + "/ partner id: " + user.partnerId),
-                                        )
+                                    return AlertDialog(
+                                      actions: <Widget>[
+                                        FlatButton(
+                                            child: Text('$partnerNameさんと繋がる'),
+                                            onPressed: () {
+                                              //push通知
+                                              postQrScannedNotification();
+                                              //更新した自分のパートナー情報をアプリに反映
+                                              fetchChangedUserInfo();
+                                              //ダイアログ閉じる
+                                              Navigator.pop(context, false);
+                                            }
+                                        ),
                                       ],
                                     );
                                   }
                               );
+                            });
+                          });
                         });
-
-                        _userReference.document(user.partnerId).updateData({
-                          'hasPartner': user.hasPartner,
-                          'partnerId': user.uuid
-                        }).whenComplete(() {
-                          showDialog(
-                              context: context,
-                              builder: (context) {
-                                return SimpleDialog(
-                                  title:Text('test'),
-                                  children: <Widget>[
-                                    AlertDialog(
-                                      title: Text('パートナーに反映'),
-                                    )
-                                  ],
-                                );
-                              }
-                          );
-                        });
-
                       });
                     },
                   ),
@@ -156,45 +283,6 @@ class _MyHomePageState extends State<MyHomePage>
 
                 Container(
                   child: qr.generateQr(user.uuid),
-                ),
-                /**
-                 * TODO: [WIP]CLoud Messaginで処理するようにする
-                 */
-                Container(
-                  child: RaisedButton(
-                    child: Text('パートナー情報反映'),
-                    onPressed: () {
-                      _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-                        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-
-                        auth.saveHasPartnerFlag(data[constants.hasPartner]);
-                        user.hasPartner = data[constants.hasPartner];
-                        auth.hasPartner().then((value) {
-                          print('has partner?: ' + value.toString());
-                        });
-
-                        auth.savePartnerInfo(data[constants.partnerId]);
-                        user.partnerId = data[constants.partnerId];
-                        auth.getPartnerId().then((value) {
-                          print('what is partner id: ' + value);
-                        });
-                      });
-
-
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('test'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーに反映'),
-                                )
-                              ],
-                            );
-                          }
-                      );
-                    }),
                 ),
               ],
             ),
