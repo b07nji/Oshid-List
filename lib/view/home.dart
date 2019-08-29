@@ -108,10 +108,8 @@ class _MyHomePageState extends State<MyHomePage>
               new FlatButton(
                 child: const Text('パートナーと繋がりました'),
                 onPressed: () {
-                  _userReference.document(user.uuid).updateData({
-                    'hasPartner': user.hasPartner,
-                    'partnerId': user.partnerId
-                  });
+                  fetchChangedUserInfo();
+                  Navigator.pop(context, false);
                 },
               ),
             ],
@@ -152,6 +150,24 @@ class _MyHomePageState extends State<MyHomePage>
       print("failed push notification");
       test = "failed push notification";
     }
+  }
+
+  fetchChangedUserInfo() {
+    _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+
+      auth.saveHasPartnerFlag(data[constants.hasPartner]);
+      user.hasPartner = data[constants.hasPartner];
+      auth.hasPartner().then((value) {
+        print('has partner?: ' + value.toString());
+      });
+
+      auth.savePartnerInfo(data[constants.partnerId]);
+      user.partnerId = data[constants.partnerId];
+      auth.getPartnerId().then((value) {
+        print('what is partner id: ' + value);
+      });
+    });
   }
 
   @override
@@ -202,27 +218,54 @@ class _MyHomePageState extends State<MyHomePage>
                         user.hasPartner = true;
                         user.partnerId = partnerId;
 
+                        //TODO: リファクタ
+                        //自分のパートナー情報更新
                         _userReference.document(user.uuid).updateData({
                               'hasPartner': user.hasPartner,
                               'partnerId': user.partnerId
                             }).whenComplete(() {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return new AlertDialog(
-                                      content: new Text("test"),
-                                      actions: <Widget>[
-                                        new FlatButton(
-                                          child: const Text('繋がる'),
-                                          onPressed: () {
-                                            //TODO!!!!!!!!!!
-                                            postQrScannedNotification();
-                                          }
-                                        ),
-                                      ],
-                                    );
-                                  }
-                              );
+                              //相手のパートナー情報更新
+                              _userReference.document(user.partnerId).updateData({
+                                'hasPartner': user.hasPartner,
+                                'partnerId': user.uuid
+                              }).whenComplete(() {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return new AlertDialog(
+                                        content: new Text("test"),
+                                        actions: <Widget>[
+                                          new FlatButton(
+                                              child: const Text('繋がる'),
+                                              onPressed: () {
+                                                postQrScannedNotification();
+                                                fetchChangedUserInfo();
+                                                //TODO: リファクタ
+                                                //更新した自分のパートナー情報をアプリに反映
+//                                                _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+//                                                  Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+//
+//                                                  auth.saveHasPartnerFlag(data[constants.hasPartner]);
+//                                                  user.hasPartner = data[constants.hasPartner];
+//                                                  auth.hasPartner().then((value) {
+//                                                    print('has partner?: ' + value.toString());
+//                                                  });
+//
+//                                                  auth.savePartnerInfo(data[constants.partnerId]);
+//                                                  user.partnerId = data[constants.partnerId];
+//                                                  auth.getPartnerId().then((value) {
+//                                                    print('what is partner id: ' + value);
+//                                                  });
+//                                                });
+
+                                                Navigator.pop(context, false);
+                                              }
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                );
+                              });
                         });
 
                       });

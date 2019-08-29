@@ -79,16 +79,25 @@ class OnegaiFormState extends State<OnegaiForm> {
     setState(() {
       switch (_radVal) {
         case Status.Mine:
-          _radVal = value;
-//          user.uuid = 'not yours';
-          user.uuid = preferences.getString(constants.uuid);
-//          user.partnerId = preferences.getString(constants.partnerId);
-          print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
+          if (user.hasPartner) {
+            _radVal = value;
+            user.uuid = preferences.getString(constants.uuid);
+            print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
+          } else {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return SimpleDialog(
+                      title:Text('パートナーと繋がってね')
+                  );
+                }
+            );
+          }
+
           break;
         case Status.Yours:
           if (user.hasPartner) {
             _radVal = value;
-//            user.partnerId = 'not mine';
             user.partnerId = preferences.getString(constants.partnerId);
             print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
 
