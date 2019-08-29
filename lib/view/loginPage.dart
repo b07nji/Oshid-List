@@ -24,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("ログイン"),
+        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
       ),
       body: Center(
         child: Form(

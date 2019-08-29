@@ -65,7 +65,10 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Oshid-List')),
+      appBar: AppBar(
+          title: Text('Oshid-List'),
+        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
+      ),
       body: TabBarView(
         controller: _tabController,
         children: tabs.map((tab) {
@@ -89,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage>
                       ],
                     ),
                     decoration: BoxDecoration(
-                        color: Colors.blue
+                        color: Color.fromRGBO(207, 167, 205, 1)
                     ),
                   ),
                 ),
@@ -204,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage>
 
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, size: 30),
-        backgroundColor: Colors.orange,
+        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
         onPressed: () {
           Navigator.push(
             context,
@@ -218,7 +221,7 @@ class _MyHomePageState extends State<MyHomePage>
         tabs: tabs,
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
-        indicatorColor: Colors.orange,
+        indicatorColor: Color.fromRGBO(207, 167, 205, 1),
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
@@ -342,7 +345,7 @@ class LabeledCheckbox extends StatelessWidget {
              ),),),
               Checkbox(
               value: value,
-              activeColor: Colors.blue,
+              activeColor: Color.fromRGBO(207, 167, 205, 1),
               onChanged: (bool newValue) {
                 onChanged(newValue);
               },
