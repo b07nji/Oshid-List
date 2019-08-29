@@ -74,6 +74,22 @@ class OnegaiFormState extends State<OnegaiForm> {
     }
   }
 
+  void _buildNoPartnerDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text('パートナーと繋がってね'),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          ],
+        )
+    );
+  }
 
   void _onChanged(value) {
     setState(() {
@@ -84,14 +100,7 @@ class OnegaiFormState extends State<OnegaiForm> {
             user.uuid = preferences.getString(constants.uuid);
             print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
           } else {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return SimpleDialog(
-                      title:Text('パートナーと繋がってね')
-                  );
-                }
-            );
+            _buildNoPartnerDialog(context);
           }
 
           break;
@@ -102,14 +111,7 @@ class OnegaiFormState extends State<OnegaiForm> {
             print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
 
           } else {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return SimpleDialog(
-                    title:Text('パートナーと繋がってね')
-                  );
-                }
-            );
+            _buildNoPartnerDialog(context);
           }
           break;
         case Status.Together:
@@ -120,14 +122,7 @@ class OnegaiFormState extends State<OnegaiForm> {
             print('together: uuid ' + user.uuid + ', partner ' + user.partnerId);
 
           } else {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return SimpleDialog(
-                      title:Text('パートナーと繋がってね')
-                  );
-                }
-            );
+            _buildNoPartnerDialog(context);
           }
           break;
       }

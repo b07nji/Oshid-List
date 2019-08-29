@@ -24,8 +24,6 @@ final qr = QRUtils();
 final formatter = DateFormat('E: M/d', "ja");
 final constants = Constants();
 
-var test = 'hello';
-
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -40,11 +38,11 @@ class _MyHomePageState extends State<MyHomePage>
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
-      text: '自分',
+      text: constants.me,
         ),
     Tab(
       key: Key('1'),
-      text: 'パートナー',
+      text: constants.partner,
     )
   ];
   TabController _tabController;
@@ -58,6 +56,7 @@ class _MyHomePageState extends State<MyHomePage>
       preferences = pref;
       setState(() {
         user.uuid = preferences.getString(constants.uuid);
+        user.userName = preferences.getString(constants.userName);
         user.hasPartner = preferences.getBool(constants.hasPartner);
         user.partnerId = preferences.getString(constants.partnerId);
         print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
@@ -68,15 +67,15 @@ class _MyHomePageState extends State<MyHomePage>
         _firebaseMessaging.configure(
           onMessage: (Map<String, dynamic> message) async {
             print("onMessage: $message");
-            _buildDialog(context, "onMessage");
+            _buildPushDialog(context, message);
           },
           onLaunch: (Map<String, dynamic> message) async {
             print("onLaunch: $message");
-            _buildDialog(context, "onLaunch");
+            _buildPushDialog(context, message);
           },
           onResume: (Map<String, dynamic> message) async {
             print("onResume: $message");
-            _buildDialog(context, "onResume");
+            _buildPushDialog(context, message);
           },
         );
         _firebaseMessaging.requestNotificationPermissions(
@@ -97,58 +96,48 @@ class _MyHomePageState extends State<MyHomePage>
     _tabController = TabController(length: tabs.length, vsync: this);
 
   }
-  void _buildDialog(BuildContext context, String message) {
+  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
     showDialog(
         context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return new AlertDialog(
-            content: new Text("Message: $message"),
-            actions: <Widget>[
-              new FlatButton(
-                child: const Text('パートナーと繋がりました'),
-                onPressed: () {
-                  fetchChangedUserInfo();
-                  Navigator.pop(context, false);
-                },
-              ),
-            ],
-          );
-        }
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text(message['notification']['title']),
+            subtitle: Text(message['notification']['body']),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          ],
+        )
     );
   }
 
   postQrScannedNotification() async {
-
-    test = 'postQr is called';
-
     var serverKey = constants.serverKey;
-    final postUrl = 'https://fcm.googleapis.com/fcm/send';
 
     final notification = {
       "to": "/topics/" + user.partnerId,
-      "notification": {"title": "テストです", "body": "Titileです"},
+      "notification": {"title": "パートナーと繋がりました！", "body": user.userName + "さんがパートナー連携しました"},
       "priority": 10,
     };
 
     final headers = {
       'content-type': 'application/json',
-      'Authorization':
-      'key=$serverKey'
+      'Authorization': 'key=$serverKey'
     };
 
     final response = await http.post(
-      postUrl,
+      constants.url,
       body: json.encode(notification),
       headers: headers,
     );
 
     if (response.statusCode == 200) {
       print("pushed notification successfully");
-      test = "pushed notification successfully";
     } else {
       print("failed push notification");
-      test = "failed push notification";
     }
   }
 
@@ -203,6 +192,10 @@ class _MyHomePageState extends State<MyHomePage>
                         color: constants.violet
                     ),
                   ),
+                ),
+
+                Container(
+                  child: Text(user.userName),
                 ),
 
                 Container(
@@ -261,10 +254,6 @@ class _MyHomePageState extends State<MyHomePage>
                 Container(
                   child: qr.generateQr(user.uuid),
                 ),
-
-                Container(
-                  child: Text(test)
-                )
               ],
             ),
 
