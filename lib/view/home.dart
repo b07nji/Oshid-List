@@ -238,26 +238,11 @@ class _MyHomePageState extends State<MyHomePage>
                                           new FlatButton(
                                               child: const Text('繋がる'),
                                               onPressed: () {
+                                                //push通知
                                                 postQrScannedNotification();
-                                                fetchChangedUserInfo();
-                                                //TODO: リファクタ
                                                 //更新した自分のパートナー情報をアプリに反映
-//                                                _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-//                                                  Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-//
-//                                                  auth.saveHasPartnerFlag(data[constants.hasPartner]);
-//                                                  user.hasPartner = data[constants.hasPartner];
-//                                                  auth.hasPartner().then((value) {
-//                                                    print('has partner?: ' + value.toString());
-//                                                  });
-//
-//                                                  auth.savePartnerInfo(data[constants.partnerId]);
-//                                                  user.partnerId = data[constants.partnerId];
-//                                                  auth.getPartnerId().then((value) {
-//                                                    print('what is partner id: ' + value);
-//                                                  });
-//                                                });
-
+                                                fetchChangedUserInfo();
+                                                //ダイアログ閉じる
                                                 Navigator.pop(context, false);
                                               }
                                           ),
