@@ -13,6 +13,7 @@ final _userReference = Firestore.instance.collection(constants.users);
 final user = User();
 final auth = Authentication();
 final constants = Constants();
+var partnerName = 'パートナー';
 
 class OnegaiCreator extends StatelessWidget {
   @override
@@ -53,6 +54,9 @@ class OnegaiFormState extends State<OnegaiForm> {
         user.hasPartner = preferences.getBool(constants.hasPartner);
         if (user.hasPartner) {
           _radVal = Status.Yours;
+          auth.getPartnerName().then((value) {
+            partnerName = value;
+          });
         }
 
         user.uuid = preferences.getString(constants.uuid);
@@ -155,7 +159,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                      title: Text('パートナー'),
+                      title: Text(partnerName),
                       value: Status.Yours,
                       groupValue: _radVal,
                       activeColor: constants.violet,

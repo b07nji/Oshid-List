@@ -23,6 +23,7 @@ final user = User();
 final qr = QRUtils();
 final formatter = DateFormat('E: M/d', "ja");
 final constants = Constants();
+var partnerName = 'パートナーがいません';
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -59,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage>
         user.userName = preferences.getString(constants.userName);
         user.hasPartner = preferences.getBool(constants.hasPartner);
         user.partnerId = preferences.getString(constants.partnerId);
+        if (user.hasPartner) partnerName = preferences.getString(constants.partnerName);
         print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
 
         //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
@@ -102,24 +104,26 @@ class _MyHomePageState extends State<MyHomePage>
         builder: (context) => AlertDialog(
           content: ListTile(
             title: Text(message['notification']['title']),
-            subtitle: Text(message['notification']['body']),
           ),
           actions: <Widget>[
             FlatButton(
               child: Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                fetchChangedUserInfo();
+                Navigator.of(context).pop();
+              },
             )
           ],
         )
     );
   }
 
-  postQrScannedNotification() async {
+  void postQrScannedNotification() async {
     var serverKey = constants.serverKey;
 
     final notification = {
       "to": "/topics/" + user.partnerId,
-      "notification": {"title": "パートナーと繋がりました！", "body": user.userName + "さんがパートナー連携しました"},
+      "notification": {"title": user.userName + "さんと繋がりました！"},
       "priority": 10,
     };
 
@@ -141,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage>
     }
   }
 
-  fetchChangedUserInfo() {
+  void fetchChangedUserInfo() {
     _userReference.document(user.uuid).snapshots().forEach((snapshots) {
       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
 
@@ -151,11 +155,23 @@ class _MyHomePageState extends State<MyHomePage>
         print('has partner?: ' + value.toString());
       });
 
-      auth.savePartnerInfo(data[constants.partnerId]);
+      auth.savePartnerId(data[constants.partnerId]);
       user.partnerId = data[constants.partnerId];
       auth.getPartnerId().then((value) {
         print('what is partner id: ' + value);
+
       });
+
+      _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+        auth.savePartnerName(data[constants.userName]);
+        auth.getPartnerName().then((value) {
+          setState(() {
+            partnerName = value;
+          });
+        });
+      });
+
     });
   }
 
@@ -163,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text('Oshid-List'),
+        title: Text('Oshid-List'),
         backgroundColor: constants.violet,
       ),
       body: TabBarView(
@@ -194,8 +210,14 @@ class _MyHomePageState extends State<MyHomePage>
                   ),
                 ),
 
+                //TODO: エミュレータだとnullエラーが起こる
                 Container(
                   child: Text(user.userName),
+                ),
+
+                Container(
+                  child: Text(partnerName),
+
                 ),
 
                 Container(
@@ -203,49 +225,57 @@ class _MyHomePageState extends State<MyHomePage>
                     child: Text('パートナーと繋がる'),
                     onPressed: () {
                       qr.readQr().then((partnerId) {
+
                         /**
                          *  TODO: パートナーIDをローカルストレージ保存
                          */
                         auth.saveHasPartnerFlag(true);
-                        auth.savePartnerInfo(partnerId);
+                        auth.savePartnerId(partnerId);
                         user.hasPartner = true;
                         user.partnerId = partnerId;
 
-                        //TODO: リファクタ
-                        //自分のパートナー情報更新
-                        _userReference.document(user.uuid).updateData({
-                              'hasPartner': user.hasPartner,
-                              'partnerId': user.partnerId
-                            }).whenComplete(() {
-                              //相手のパートナー情報更新
-                              _userReference.document(user.partnerId).updateData({
-                                'hasPartner': user.hasPartner,
-                                'partnerId': user.uuid
-                              }).whenComplete(() {
-                                showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return new AlertDialog(
-                                        content: new Text("test"),
-                                        actions: <Widget>[
-                                          new FlatButton(
-                                              child: const Text('繋がる'),
-                                              onPressed: () {
-                                                //push通知
-                                                postQrScannedNotification();
-                                                //更新した自分のパートナー情報をアプリに反映
-                                                fetchChangedUserInfo();
-                                                //ダイアログ閉じる
-                                                Navigator.pop(context, false);
-                                              }
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                );
-                              });
-                        });
+                        /**
+                         * TODO: パートナー名取得
+                         */
+                        _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+                          Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+                          auth.savePartnerName(data[constants.userName]);
+                          partnerName = data[constants.userName];
 
+                          //TODO: リファクタ
+                          //自分のパートナー情報更新
+                          _userReference.document(user.uuid).updateData({
+                            'hasPartner': user.hasPartner,
+                            'partnerId': user.partnerId
+                          }).whenComplete(() {
+                            //相手のパートナー情報更新
+                            _userReference.document(user.partnerId).updateData({
+                              'hasPartner': user.hasPartner,
+                              'partnerId': user.uuid
+                            }).whenComplete(() {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      actions: <Widget>[
+                                        FlatButton(
+                                            child: Text('$partnerNameさんと繋がる'),
+                                            onPressed: () {
+                                              //push通知
+                                              postQrScannedNotification();
+                                              //更新した自分のパートナー情報をアプリに反映
+                                              fetchChangedUserInfo();
+                                              //ダイアログ閉じる
+                                              Navigator.pop(context, false);
+                                            }
+                                        ),
+                                      ],
+                                    );
+                                  }
+                              );
+                            });
+                          });
+                        });
                       });
                     },
                   ),

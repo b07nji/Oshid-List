@@ -20,7 +20,7 @@ class Authentication {
     return (prefs.getString(constants.uuid) ?? null);
   }
 
-  void savePartnerInfo(String partnerId) async {
+  void savePartnerId(String partnerId) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.setString(constants.partnerId, partnerId);
   }
@@ -38,6 +38,16 @@ class Authentication {
   Future<bool> hasPartner() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return (prefs.getBool(constants.hasPartner) ?? false);
+  }
+
+  void savePartnerName(String partnerName) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setString(constants.partnerName, partnerName);
+  }
+
+  Future<String> getPartnerName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return (prefs.getString(constants.partnerName) ?? null);
   }
 }
 

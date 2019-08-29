@@ -85,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                       //3. add to preference. if no sentence below here, can't relate user with onegai
                       auth.saveUserInfo(user.uuid, user.userName);
                       auth.saveHasPartnerFlag(user.hasPartner);
-                      auth.savePartnerInfo(user.partnerId);
+                      auth.savePartnerId(user.partnerId);
 
                     },
                   ),

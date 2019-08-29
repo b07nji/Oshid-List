@@ -9,6 +9,7 @@ class Constants {
   final uuid = 'uuid';
   final userName = 'userName';
   final partnerId = 'partnerId';
+  final partnerName = 'partnerName';
   final hasPartner = 'hasPartner';
 
   //色
