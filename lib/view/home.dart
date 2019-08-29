@@ -24,6 +24,8 @@ final qr = QRUtils();
 final formatter = DateFormat('E: M/d', "ja");
 final constants = Constants();
 
+var test = 'hello';
+
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -120,6 +122,9 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   postQrScannedNotification() async {
+
+    test = 'postQr is called';
+
     var serverKey = constants.serverKey;
     final postUrl = 'https://fcm.googleapis.com/fcm/send';
 
@@ -143,8 +148,10 @@ class _MyHomePageState extends State<MyHomePage>
 
     if (response.statusCode == 200) {
       print("pushed notification successfully");
+      test = "pushed notification successfully";
     } else {
       print("failed push notification");
+      test = "failed push notification";
     }
   }
 
@@ -211,12 +218,6 @@ class _MyHomePageState extends State<MyHomePage>
                                           onPressed: () {
                                             //TODO!!!!!!!!!!
                                             postQrScannedNotification();
-                                            AlertDialog(
-                                              content: new Text("called: " + user.partnerId),
-                                              actions: <Widget>[
-
-                                              ],
-                                            );
                                           }
                                         ),
                                       ],
@@ -233,6 +234,10 @@ class _MyHomePageState extends State<MyHomePage>
                 Container(
                   child: qr.generateQr(user.uuid),
                 ),
+
+                Container(
+                  child: Text(test)
+                )
               ],
             ),
 
