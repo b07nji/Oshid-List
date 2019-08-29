@@ -212,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage>
 
                 //TODO: エミュレータだとnullエラーが起こる
                 Container(
-                  child: Text(user.userName),
+                  child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
                 ),
 
                 Container(
