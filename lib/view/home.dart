@@ -63,34 +63,33 @@ class _MyHomePageState extends State<MyHomePage>
         print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
 
         //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
-        if (user.hasPartner) {
-          //FCM設定
-          _firebaseMessaging.configure(
-            onMessage: (Map<String, dynamic> message) async {
-              print("onMessage: $message");
-              _buildDialog(context, "onMessage");
-            },
-            onLaunch: (Map<String, dynamic> message) async {
-              print("onLaunch: $message");
-              _buildDialog(context, "onLaunch");
-            },
-            onResume: (Map<String, dynamic> message) async {
-              print("onResume: $message");
-              _buildDialog(context, "onResume");
-            },
-          );
-          _firebaseMessaging.requestNotificationPermissions(
-              const IosNotificationSettings(sound: true, badge: true, alert: true));
-          _firebaseMessaging.onIosSettingsRegistered
-              .listen((IosNotificationSettings settings) {
-            print("Settings registered: $settings");
-          });
-          _firebaseMessaging.getToken().then((String token) {
-            assert(token != null);
-            print("Push Messaging token: $token");
-          });
-          _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
-        }
+
+        //FCM設定
+        _firebaseMessaging.configure(
+          onMessage: (Map<String, dynamic> message) async {
+            print("onMessage: $message");
+            _buildDialog(context, "onMessage");
+          },
+          onLaunch: (Map<String, dynamic> message) async {
+            print("onLaunch: $message");
+            _buildDialog(context, "onLaunch");
+          },
+          onResume: (Map<String, dynamic> message) async {
+            print("onResume: $message");
+            _buildDialog(context, "onResume");
+          },
+        );
+        _firebaseMessaging.requestNotificationPermissions(
+            const IosNotificationSettings(sound: true, badge: true, alert: true));
+        _firebaseMessaging.onIosSettingsRegistered
+            .listen((IosNotificationSettings settings) {
+          print("Settings registered: $settings");
+        });
+        _firebaseMessaging.getToken().then((String token) {
+          assert(token != null);
+          print("Push Messaging token: $token");
+        });
+        _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
       });
     });
 
