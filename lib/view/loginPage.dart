@@ -4,9 +4,12 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:uuid/uuid.dart';
 
+import '../constants.dart';
+
 final auth = Authentication();
 final user = User();
-final _userReference = Firestore.instance.collection('users');
+final constants = Constants();
+final _userReference = Firestore.instance.collection(constants.users);
 
 class LoginPage extends StatefulWidget {
 
@@ -24,6 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("ログイン"),
+        backgroundColor: constants.violet,
       ),
       body: Center(
         child: Form(
@@ -35,9 +39,17 @@ class _LoginPageState extends State<LoginPage> {
               children: <Widget>[
                 const SizedBox(height: 24.0),
                 TextFormField(
+                  cursorColor:Colors.grey,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     labelText: 'ニックネーム',
+                    labelStyle: TextStyle(color: Colors.black),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.deepPurpleAccent),
+                    ),
                   ),
                   validator: (value) {
                     if (value.isEmpty) {
@@ -46,8 +58,7 @@ class _LoginPageState extends State<LoginPage> {
                     return null;
                   },
                   onSaved: (value) {
-                    user.nickname = value;
-                    print('onsaved is caleed, value is:  ' + value);
+                    user.userName = value;
                   },
                 ),
                 const SizedBox(height: 24.0),
@@ -61,7 +72,6 @@ class _LoginPageState extends State<LoginPage> {
 
                       if (_formKey.currentState.validate()) {
                         _formKey.currentState.save();
-                        print(user.nickname);
 //                        Scaffold.of(context)
 //                            .showSnackBar(SnackBar(content: Text('送信しています')));
                       }
@@ -69,12 +79,11 @@ class _LoginPageState extends State<LoginPage> {
                       user.uuid = uuid.v1();
                       user.hasPartner = false;
                       user.partnerId = "no partner";
-                      print(user.uuid);
 
                       _userReference.document(user.uuid).setData(
                           {
                             'uuid': user.uuid,
-                            'name': user.nickname,
+                            'userName': user.userName,
                             'hasPartner': user.hasPartner,
                             'partnerId': user.partnerId
                           }
@@ -82,9 +91,9 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.of(context).pushReplacementNamed('/home');
                       });
                       //3. add to preference. if no sentence below here, can't relate user with onegai
-                      auth.saveUserInfo(user.uuid, user.uuid);
+                      auth.saveUserInfo(user.uuid, user.userName);
                       auth.saveHasPartnerFlag(user.hasPartner);
-                      auth.savePartnerInfo(user.partnerId);
+                      auth.savePartnerId(user.partnerId);
 
                     },
                   ),

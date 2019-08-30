@@ -1,22 +1,32 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert' show json;
+import 'package:http/http.dart' as http;
 
+import '../constants.dart';
 import 'onegaiPage.dart';
+import 'pointPage.dart';
 
+import "package:intl/intl.dart";
 
-final _onegaiReference = Firestore.instance.collection('onegai');
-final _userReference = Firestore.instance.collection('users');
+final _onegaiReference = Firestore.instance.collection(constants.onegai);
+final _userReference = Firestore.instance.collection(constants.users);
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+
 final auth = Authentication();
 final user = User();
 final qr = QRUtils();
+final formatter = DateFormat('M/d E', "ja");
+final constants = Constants();
+var partnerName = 'パートナーがいません';
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -27,19 +37,20 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
-
+  // 以下をStateの中に記述
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
-      text: '自分',
+      text: constants.me,
         ),
     Tab(
       key: Key('1'),
-      text: 'パートナー',
+      text: constants.partner,
     )
   ];
   TabController _tabController;
   SharedPreferences preferences;
+
 
   ///起動時に呼ばれる
   @override
@@ -48,20 +59,133 @@ class _MyHomePageState extends State<MyHomePage>
     SharedPreferences.getInstance().then((SharedPreferences pref) {
       preferences = pref;
       setState(() {
-        user.uuid = preferences.getString('uuid');
-        user.hasPartner = preferences.getBool('hasPartner');
-        user.partnerId = preferences.getString('partnerId');
+        user.uuid = preferences.getString(constants.uuid);
+        user.userName = preferences.getString(constants.userName);
+        user.hasPartner = preferences.getBool(constants.hasPartner);
+        user.partnerId = preferences.getString(constants.partnerId);
+        if (user.hasPartner) partnerName = preferences.getString(constants.partnerName);
         print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
+
+        //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
+
+        //FCM設定
+        _firebaseMessaging.configure(
+          onMessage: (Map<String, dynamic> message) async {
+            print("onMessage: $message");
+            _buildPushDialog(context, message);
+          },
+          onLaunch: (Map<String, dynamic> message) async {
+            print("onLaunch: $message");
+            _buildPushDialog(context, message);
+          },
+          onResume: (Map<String, dynamic> message) async {
+            print("onResume: $message");
+            _buildPushDialog(context, message);
+          },
+        );
+        _firebaseMessaging.requestNotificationPermissions(
+            const IosNotificationSettings(sound: true, badge: true, alert: true));
+        _firebaseMessaging.onIosSettingsRegistered
+            .listen((IosNotificationSettings settings) {
+          print("Settings registered: $settings");
+        });
+        _firebaseMessaging.getToken().then((String token) {
+          assert(token != null);
+          print("Push Messaging token: $token");
+        });
+        _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
       });
     });
+
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
+
   }
+  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        content: ListTile(
+          title: Text(message['notification']['title']),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('OK'),
+            onPressed: () {
+              fetchChangedUserInfo();
+              Navigator.of(context).pop();
+            },
+          )
+        ],
+      )
+    );
+  }
+
+  void postQrScannedNotification() async {
+    var serverKey = constants.serverKey;
+
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": user.userName + "さんと繋がりました！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
+  }
+
+  void fetchChangedUserInfo() {
+    _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+
+      auth.saveHasPartnerFlag(data[constants.hasPartner]);
+      user.hasPartner = data[constants.hasPartner];
+      auth.hasPartner().then((value) {
+        print('has partner?: ' + value.toString());
+      });
+
+      auth.savePartnerId(data[constants.partnerId]);
+      user.partnerId = data[constants.partnerId];
+      auth.getPartnerId().then((value) {
+        print('what is partner id: ' + value);
+
+      });
+
+      _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+        auth.savePartnerName(data[constants.userName]);
+        auth.getPartnerName().then((value) {
+          setState(() {
+            partnerName = value;
+          });
+        });
+      });
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Oshid-List')),
+      appBar: AppBar(
+        title: Text('Oshid-List'),
+        backgroundColor: constants.violet,
+      ),
       body: TabBarView(
         controller: _tabController,
         children: tabs.map((tab) {
@@ -69,137 +193,134 @@ class _MyHomePageState extends State<MyHomePage>
         }).toList()
       ),
       endDrawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                Container(
-                  height: 100,
-                  child: DrawerHeader(
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          alignment: Alignment.topLeft,
-                          width: 220,
-                          child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
-                        ),
-                      ],
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            Container(
+              height: 90,
+              child: DrawerHeader(
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    Container(
+                      alignment: Alignment.center,
+//                      width: 250,
+                      child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                     ),
-                    decoration: BoxDecoration(
-                        color: Colors.blue
-                    ),
-                  ),
+                  ],
                 ),
+                decoration: BoxDecoration(
+                  color: constants.violet
+                ),
+              ),
+            ),
+            Container(
+              child: Icon(
+                const IconData(59475, fontFamily: 'MaterialIcons'),
+                size: 50,
+              )
+            ),
+            Center(
+              child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+            ),
+            SizedBox(height: 10,),
 
-                Container(
-                  child: RaisedButton(
-                    child: Text('パートナーと繋がる'),
-                    onPressed: () {
-                      qr.readQr().then((partnerId) {
-                        /**
-                         *  TODO: パートナーIDをローカルストレージ保存
-                         */
-                        auth.saveHasPartnerFlag(true);
-                        auth.savePartnerInfo(partnerId);
+            Container(
+              width: 200,
+              padding: EdgeInsets.only(left: 60, right: 50),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset('images/oshidori_icon.png'),
+                  ),
+                  Center(
+                    child: Text(partnerName),
+                  ),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset('images/oshidori_icon.png'),
+                  ),
+                ],
+              ),
+            ),
 
-                        user.hasPartner = true;
-                        user.partnerId = partnerId;
+            SizedBox(height: 30,),
+            Center(child: Text(user.userName + 'さんのQRコード'),),
+            Center(
+              child: qr.generateQr(user.uuid),
+            ),
+            Center(
+              child: RaisedButton(
+                child: Text('パートナーと繋がる'),
+                onPressed: () {
+                  qr.readQr().then((partnerId) {
+                    /**
+                     *  TODO: パートナーIDをローカルストレージ保存
+                     */
+                    auth.saveHasPartnerFlag(true);
+                    auth.savePartnerId(partnerId);
+                    user.hasPartner = true;
+                    user.partnerId = partnerId;
 
-                        _userReference.document(user.uuid).updateData({
-                              'hasPartner': user.hasPartner,
-                              'partnerId': user.partnerId
-                            }).whenComplete(() {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return SimpleDialog(
-                                      title:Text('test'),
-                                      children: <Widget>[
-                                        AlertDialog(
-                                          title: Text('uuid: ' + user.uuid + "/ partner id: " + user.partnerId),
-                                        )
-                                      ],
-                                    );
-                                  }
-                              );
-                        });
+                    /**
+                     * TODO: パートナー名取得
+                     */
+                    _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+                      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+                      auth.savePartnerName(data[constants.userName]);
+                      setState(() {
+                        partnerName = data[constants.userName];
+                      });
 
+                      //TODO: リファクタ
+                      //自分のパートナー情報更新
+                      _userReference.document(user.uuid).updateData({
+                        'hasPartner': user.hasPartner,
+                        'partnerId': user.partnerId
+                      }).whenComplete(() {
+                        //相手のパートナー情報更新
                         _userReference.document(user.partnerId).updateData({
                           'hasPartner': user.hasPartner,
                           'partnerId': user.uuid
                         }).whenComplete(() {
                           showDialog(
-                              context: context,
-                              builder: (context) {
-                                return SimpleDialog(
-                                  title:Text('test'),
-                                  children: <Widget>[
-                                    AlertDialog(
-                                      title: Text('パートナーに反映'),
-                                    )
-                                  ],
-                                );
-                              }
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                actions: <Widget>[
+                                  FlatButton(
+                                      child: Text('$partnerNameさんと繋がる'),
+                                      onPressed: () {
+                                        //push通知
+                                        postQrScannedNotification();
+                                        //更新した自分のパートナー情報をアプリに反映
+                                        fetchChangedUserInfo();
+                                        //ダイアログ閉じる
+                                        Navigator.pop(context, false);
+                                      }
+                                  ),
+                                ],
+                              );
+                            }
                           );
                         });
-
                       });
-                    },
-                  ),
-                ),
-
-                Container(
-                  child: qr.generateQr(user.uuid),
-                ),
-                /**
-                 * TODO: [WIP]CLoud Messaginで処理するようにする
-                 */
-                Container(
-                  child: RaisedButton(
-                    child: Text('パートナー情報反映'),
-                    onPressed: () {
-                      _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-                        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-//                        test.keys.forEach((key) {
-//                          print(key + " : " + test[key].toString());
-//                        });
-                        auth.saveHasPartnerFlag(data['hasPartner']);
-                        user.hasPartner = data['hasPartner'];
-                        auth.hasPartner().then((value) {
-                          print('has partner?: ' + value.toString());
-                        });
-
-                        auth.savePartnerInfo(data['partnerId']);
-                        user.partnerId = data['partnerId'];
-                        auth.getPartnerId().then((value) {
-                          print('what is partner id: ' + value);
-                        });
-                      });
-
-
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title:Text('test'),
-                              children: <Widget>[
-                                AlertDialog(
-                                  title: Text('パートナーに反映'),
-                                )
-                              ],
-                            );
-                          }
-                      );
-                    }),
-                ),
-              ],
+                    });
+                  });
+                },
+              ),
             ),
-
-          ),
-
+          ],
+        ),
+      ),
 
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, size: 30),
-        backgroundColor: Colors.blue,
+        backgroundColor: constants.violet,
         onPressed: () {
           Navigator.push(
             context,
@@ -213,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage>
         tabs: tabs,
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
-        indicatorColor: Colors.blue,
+        indicatorColor: constants.violet,
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
@@ -234,74 +355,51 @@ class _MyHomePageState extends State<MyHomePage>
       uuid = user.uuid;
     } else {
       uuid = user.partnerId;
-
-//      if (!user.hasPartner) {
-//        showDialog(
-//            context: context,
-//            builder: (context) {
-//              return SimpleDialog(
-//                title:Text('test'),
-//                children: <Widget>[
-//                  AlertDialog(
-//                    title: Text('パートナーと繋がろう！'),
-//                  )
-//                ],
-//              );
-//            }
-//        );
-//        return null;
-//      }
     }
     return StreamBuilder<QuerySnapshot> (
-      /**
-       * TODO: 時系列順にそーと
-       */
-
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
-        return _buildList(context, snapshot.data.documents);
+        if (!snapshot.hasData) return Container();
+        return _buildList(context, sortByDate(snapshot.data.documents));
       },
     );
   }
 
-  Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
+
+  Widget _buildList(BuildContext context, List<dynamic> sortedList) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: snapshot.map((data) => _buildListItem(context,data)).toList(),
+      children: sortedList.map((data) => _buildListItem(context,data)).toList(),
     );
+
   }
 
-  Widget _buildListItem(BuildContext context, DocumentSnapshot data) {
-    final record = Record.fromSnapshot(data);
-
+  Widget _buildListItem(BuildContext context, dynamic data) {
+    final record = Record.fromMap(data);
     return Padding(
       key: ValueKey(record.content),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
+          border: Border.all(color: constants.violet),
           borderRadius: BorderRadius.circular(5.0),
         ),
-        child: CheckboxListTile(
-          title: Text(record.content),
-          subtitle: Text(record.dueDate.toIso8601String()),
+        child: LabeledCheckbox(
+          onTap:(){Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OnegaiCreator()),
+          );},
+          label: record.content,
+          subtitle: formatter.format(record.dueDate),
+          padding:EdgeInsets.all(10.0),
           value: record.status,
-          activeColor: Colors.blue,
-          controlAffinity: ListTileControlAffinity.leading,
-          onChanged: (bool e) {
+          onChanged: (bool newValue) {
             setState(() {
-              /**
-               * TODO: 削除周り精査
-               * 今はとりあえずFirestoreのドキュメントを物理削除している
-               */
-//              _onegaiReference.document(record.reference.documentID).updateData({'status': e});
-              _onegaiReference.document(record.reference.documentID).delete().then((value) {
+              _onegaiReference.document(record.onegaiId).delete().then((value) {
                 print("deleted");
               }).catchError((error) {
                 print(error);
               });
-
             });
           },
         ),
@@ -309,26 +407,104 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
+
+  List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
+    List<Map<String, dynamic>>  sortedList = [];
+
+    list.forEach((snapshot) {
+      sortedList.add(snapshot.data);
+    });
+
+    sortedList.sort((a, b) {
+      DateTime dueDateA = a['dueDate'].toDate();
+      DateTime dueDateB = b['dueDate'].toDate();
+      return dueDateA.compareTo(dueDateB);
+    });
+
+    return sortedList;
+  }
+}
+
+class LabeledCheckbox extends StatelessWidget {
+  const LabeledCheckbox({
+    this.label,
+    this.subtitle,
+    this.value,
+    this.onChanged,
+    this.padding,
+    this.onTap,
+  });
+
+  final String label;
+  final String subtitle;
+  final bool value;
+  final Function onChanged;
+  final EdgeInsets padding;
+  final Function onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding:padding,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+//              child:InkWell(
+//              onTap:(){Navigator.push(
+//                context,
+//                MaterialPageRoute(builder: (context) => OnegaiCreator()),
+//              );},
+              child:Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    label,
+                    style:TextStyle(fontSize: 25.0)
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
+                      SizedBox(width: 5,),
+                      Text(subtitle),
+                    ],
+                  )
+                ]
+               ),
+              ),
+              Checkbox(
+              value: value,
+              activeColor: constants.violet,
+              onChanged: (bool newValue) {
+                onChanged(newValue);
+              },
+            ),
+          ],
+        ),
+    );
+  }
 }
 
 class Record {
+  final String onegaiId;
   final String content;
   final DateTime dueDate;
   bool status = true;
   final DocumentReference reference;
 
   Record.fromMap(Map<String, dynamic> map, {this.reference}) :
-        assert(map['content'] != null),
-        assert((map['dueDate']) != null),
-        assert((map['status']) != null),
-        content = map['content'],
-        dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
-        status = map['status'];
+      assert(map['onegaiId'] != null),
+      assert(map['content'] != null),
+      assert((map['dueDate']) != null),
+      assert((map['status']) != null),
+      onegaiId = map['onegaiId'],
+      content = map['content'],
+      dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
+      status = map['status'];
 
-  Record.fromSnapshot(DocumentSnapshot snapshot): this.fromMap(
-      snapshot.data,
-      reference: snapshot.reference
-  );
+//  Record.fromSnapshot(dynamic snapshot): this.fromMap(
+//      snapshot.data,
+//      reference: snapshot.reference
+//  );
 
   @override
   String toString() => "Record<$content: $dueDate>";
