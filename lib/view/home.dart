@@ -197,10 +197,11 @@ class _MyHomePageState extends State<MyHomePage>
               height: 90,
               child: DrawerHeader(
                 child: Row(
+                  mainAxisSize: MainAxisSize.max,
                   children: <Widget>[
                     Container(
-                      alignment: Alignment.topLeft,
-                      width: 220,
+                      alignment: Alignment.center,
+//                      width: 250,
                       child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                     ),
                   ],
@@ -210,23 +211,44 @@ class _MyHomePageState extends State<MyHomePage>
                 ),
               ),
             ),
-
-            //TODO: エミュレータだとnullエラーが起こる
             Container(
-              padding: EdgeInsets.all(10),
+              child: Icon(
+                const IconData(59475, fontFamily: 'MaterialIcons'),
+                size: 50,
+              )
+            ),
+            Center(
               child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
             ),
+            SizedBox(height: 10,),
 
             Container(
-              child: Icon(const IconData(59475, fontFamily: 'MaterialIcons'),)
+              width: 200,
+              padding: EdgeInsets.only(left: 60, right: 50),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset('images/oshidori_icon.png'),
+                  ),
+                  Center(
+                    child: Text(partnerName),
+                  ),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset('images/oshidori_icon.png'),
+                  ),
+                ],
+              ),
             ),
 
-            Container(
-              padding: EdgeInsets.only(left: 20),
-              child: Text(partnerName),
+            SizedBox(height: 30,),
+            Center(child: Text(user.userName + 'さんのQRコード'),),
+            Center(
+              child: qr.generateQr(user.uuid),
             ),
-
-            const SizedBox(height: 50,),
             Center(
               child: RaisedButton(
                 child: Text('パートナーと繋がる'),
@@ -262,25 +284,25 @@ class _MyHomePageState extends State<MyHomePage>
                           'partnerId': user.uuid
                         }).whenComplete(() {
                           showDialog(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  actions: <Widget>[
-                                    FlatButton(
-                                        child: Text('$partnerNameさんと繋がる'),
-                                        onPressed: () {
-                                          //push通知
-                                          postQrScannedNotification();
-                                          //更新した自分のパートナー情報をアプリに反映
-                                          fetchChangedUserInfo();
-                                          //ダイアログ閉じる
-                                          Navigator.pop(context, false);
-                                        }
-                                    ),
-                                  ],
-                                );
-                              }
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                actions: <Widget>[
+                                  FlatButton(
+                                      child: Text('$partnerNameさんと繋がる'),
+                                      onPressed: () {
+                                        //push通知
+                                        postQrScannedNotification();
+                                        //更新した自分のパートナー情報をアプリに反映
+                                        fetchChangedUserInfo();
+                                        //ダイアログ閉じる
+                                        Navigator.pop(context, false);
+                                      }
+                                  ),
+                                ],
+                              );
+                            }
                           );
                         });
                       });
@@ -289,14 +311,9 @@ class _MyHomePageState extends State<MyHomePage>
                 },
               ),
             ),
-
-            Center(
-              child: qr.generateQr(user.uuid),
-            ),
           ],
         ),
       ),
-
 
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, size: 30),
@@ -370,11 +387,6 @@ class _MyHomePageState extends State<MyHomePage>
           value: record.status,
           onChanged: (bool newValue) {
             setState(() {
-              /**
-               * TODO: 削除周り精査
-               * 今はとりあえずFirestoreのドキュメントを物理削除している
-               */
-//              _onegaiReference.document(record.reference.documentID).updateData({'status': e});
               _onegaiReference.document(record.onegaiId).delete().then((value) {
                 print("deleted");
               }).catchError((error) {
@@ -435,7 +447,7 @@ class LabeledCheckbox extends StatelessWidget {
                   ),
                   Row(
                     children: <Widget>[
-                      Icon(const IconData(57746, fontFamily: 'MaterialIcons'),),
+                      Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
                       SizedBox(width: 5,),
                       Text(subtitle),
                     ],
