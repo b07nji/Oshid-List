@@ -13,6 +13,7 @@ final _userReference = Firestore.instance.collection(constants.users);
 final user = User();
 final auth = Authentication();
 final constants = Constants();
+var partnerName = 'パートナー';
 
 class OnegaiCreator extends StatelessWidget {
   @override
@@ -53,6 +54,9 @@ class OnegaiFormState extends State<OnegaiForm> {
         user.hasPartner = preferences.getBool(constants.hasPartner);
         if (user.hasPartner) {
           _radVal = Status.Yours;
+          auth.getPartnerName().then((value) {
+            partnerName = value;
+          });
         }
 
         user.uuid = preferences.getString(constants.uuid);
@@ -74,33 +78,44 @@ class OnegaiFormState extends State<OnegaiForm> {
     }
   }
 
+  void _buildNoPartnerDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text('パートナーと繋がってね'),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          ],
+        )
+    );
+  }
 
   void _onChanged(value) {
     setState(() {
       switch (_radVal) {
         case Status.Mine:
-          _radVal = value;
-//          user.uuid = 'not yours';
-          user.uuid = preferences.getString(constants.uuid);
-//          user.partnerId = preferences.getString(constants.partnerId);
-          print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
+          if (user.hasPartner) {
+            _radVal = value;
+            user.uuid = preferences.getString(constants.uuid);
+            print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
+          } else {
+            _buildNoPartnerDialog(context);
+          }
+
           break;
         case Status.Yours:
           if (user.hasPartner) {
             _radVal = value;
-//            user.partnerId = 'not mine';
             user.partnerId = preferences.getString(constants.partnerId);
             print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
 
           } else {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return SimpleDialog(
-                    title:Text('パートナーと繋がってね')
-                  );
-                }
-            );
+            _buildNoPartnerDialog(context);
           }
           break;
         case Status.Together:
@@ -111,14 +126,7 @@ class OnegaiFormState extends State<OnegaiForm> {
             print('together: uuid ' + user.uuid + ', partner ' + user.partnerId);
 
           } else {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return SimpleDialog(
-                      title:Text('パートナーと繋がってね')
-                  );
-                }
-            );
+            _buildNoPartnerDialog(context);
           }
           break;
       }
@@ -151,7 +159,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                      title: Text('パートナー'),
+                      title: Text(partnerName),
                       value: Status.Yours,
                       groupValue: _radVal,
                       activeColor: constants.violet,

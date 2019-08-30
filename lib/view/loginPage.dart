@@ -51,7 +51,6 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   onSaved: (value) {
                     user.userName = value;
-                    print('onsaved is caleed, value is:  ' + value);
                   },
                 ),
                 const SizedBox(height: 24.0),
@@ -65,7 +64,6 @@ class _LoginPageState extends State<LoginPage> {
 
                       if (_formKey.currentState.validate()) {
                         _formKey.currentState.save();
-                        print(user.userName);
 //                        Scaffold.of(context)
 //                            .showSnackBar(SnackBar(content: Text('送信しています')));
                       }
@@ -73,7 +71,6 @@ class _LoginPageState extends State<LoginPage> {
                       user.uuid = uuid.v1();
                       user.hasPartner = false;
                       user.partnerId = "no partner";
-                      print(user.uuid);
 
                       _userReference.document(user.uuid).setData(
                           {
@@ -88,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                       //3. add to preference. if no sentence below here, can't relate user with onegai
                       auth.saveUserInfo(user.uuid, user.userName);
                       auth.saveHasPartnerFlag(user.hasPartner);
-                      auth.savePartnerInfo(user.partnerId);
+                      auth.savePartnerId(user.partnerId);
 
                     },
                   ),
