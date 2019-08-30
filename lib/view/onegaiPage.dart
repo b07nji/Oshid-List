@@ -58,10 +58,8 @@ class OnegaiFormState extends State<OnegaiForm> {
             partnerName = value;
           });
         }
-
         user.uuid = preferences.getString(constants.uuid);
         user.partnerId = preferences.getString(constants.partnerId);
-
       });
     });
   }
@@ -140,7 +138,11 @@ class OnegaiFormState extends State<OnegaiForm> {
       child: Form(
         key: this._formKey,
         child: ListView(
+          padding: EdgeInsets.all(30),
           children: <Widget>[
+
+            SizedBox(height: 20),
+
             TextFormField(
               validator: (value) {
                 if (value.isEmpty) return "おねがいを入れてね";
@@ -153,36 +155,39 @@ class OnegaiFormState extends State<OnegaiForm> {
               onSaved: (value) => (setState(() => _onegai.content = value))
             ),
 
+            SizedBox(height: 10),
+
             Text('誰に?'),
-            Container(
-              padding: EdgeInsets.all(16.0),
+            Center(
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                      title: Text(partnerName),
-                      value: Status.Yours,
-                      groupValue: _radVal,
-                      activeColor: constants.violet,
-                      onChanged: _onChanged),
+                    title: Text(partnerName),
+                    value: Status.Yours,
+                    groupValue: _radVal,
+                    activeColor: constants.violet,
+                    onChanged: _onChanged),
                   RadioListTile(
-                      title: Text('ふたりで'),
-                      value: Status.Together,
-                      groupValue: _radVal,
-                      activeColor: constants.violet,
-                      onChanged: _onChanged),
+                    title: Text('ふたりで'),
+                    value: Status.Together,
+                    groupValue: _radVal,
+                    activeColor: constants.violet,
+                    onChanged: _onChanged),
                   RadioListTile(
-                      title: Text('自分'),
-                      value: Status.Mine,
-                      groupValue: _radVal,
-                      activeColor: constants.violet,
-                      onChanged: _onChanged),
+                    title: Text('自分'),
+                    value: Status.Mine,
+                    groupValue: _radVal,
+                    activeColor: constants.violet,
+                    onChanged: _onChanged),
                 ],
               ),
             ),
 
+            SizedBox(height: 10),
+
             Text('いつまでに?'),
             SizedBox(
-              width: 10.0,
+              width: 150,
               child: RaisedButton.icon(
                 color: Colors.white,
                 onPressed: _selectDate,
@@ -194,7 +199,10 @@ class OnegaiFormState extends State<OnegaiForm> {
               ),
             ),
 
-            Container(
+            SizedBox(height: 50,),
+
+            SizedBox(
+              width: 150,
               child: RaisedButton(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Text(
