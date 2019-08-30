@@ -74,6 +74,8 @@ flutter:
   #  - images/a_dot_ham.jpeg
   assets:
     - images/oshidori_icon.png
+    - images/oshidori_icon2.png
+    - icon/oshid_list_flag.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -102,6 +104,6 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 
 flutter_icons:
-  image_path: "icon/oshid-list icon2 ver1.3.png"
+  image_path: "icon/oshid_list_icon.png"
   android: true
   ios: true
