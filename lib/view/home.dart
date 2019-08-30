@@ -8,7 +8,7 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert' show Encoding, json;
+import 'dart:convert' show json;
 import 'package:http/http.dart' as http;
 
 import '../constants.dart';
@@ -18,10 +18,12 @@ import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection(constants.onegai);
 final _userReference = Firestore.instance.collection(constants.users);
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+
 final auth = Authentication();
 final user = User();
 final qr = QRUtils();
-final formatter = DateFormat('E: M/d', "ja");
+final formatter = DateFormat('M/d E', "ja");
 final constants = Constants();
 var partnerName = 'パートナーがいません';
 
@@ -35,7 +37,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
   // 以下をStateの中に記述
-  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
@@ -100,21 +101,22 @@ class _MyHomePageState extends State<MyHomePage>
   }
   void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
     showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          content: ListTile(
-            title: Text(message['notification']['title']),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('OK'),
-              onPressed: () {
-                fetchChangedUserInfo();
-                Navigator.of(context).pop();
-              },
-            )
-          ],
-        )
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        content: ListTile(
+          title: Text(message['notification']['title']),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('OK'),
+            onPressed: () {
+              fetchChangedUserInfo();
+              Navigator.of(context).pop();
+            },
+          )
+        ],
+      )
     );
   }
 
@@ -171,7 +173,6 @@ class _MyHomePageState extends State<MyHomePage>
           });
         });
       });
-
     });
   }
 
@@ -189,106 +190,130 @@ class _MyHomePageState extends State<MyHomePage>
         }).toList()
       ),
       endDrawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                Container(
-                  height: 100,
-                  child: DrawerHeader(
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          alignment: Alignment.topLeft,
-                          width: 220,
-                          child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
-                        ),
-                      ],
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            Container(
+              height: 90,
+              child: DrawerHeader(
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    Container(
+                      alignment: Alignment.center,
+//                      width: 250,
+                      child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                     ),
-                    decoration: BoxDecoration(
-                        color: constants.violet
-                    ),
+                  ],
+                ),
+                decoration: BoxDecoration(
+                  color: constants.violet
+                ),
+              ),
+            ),
+            Container(
+              child: Icon(
+                const IconData(59475, fontFamily: 'MaterialIcons'),
+                size: 50,
+              )
+            ),
+            Center(
+              child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+            ),
+            SizedBox(height: 10,),
+
+            Container(
+              width: 200,
+              padding: EdgeInsets.only(left: 60, right: 50),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset('images/oshidori_icon.png'),
                   ),
-                ),
-
-                //TODO: エミュレータだとnullエラーが起こる
-                Container(
-                  child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
-                ),
-
-                Container(
-                  child: Text(partnerName),
-
-                ),
-
-                Container(
-                  child: RaisedButton(
-                    child: Text('パートナーと繋がる'),
-                    onPressed: () {
-                      qr.readQr().then((partnerId) {
-
-                        /**
-                         *  TODO: パートナーIDをローカルストレージ保存
-                         */
-                        auth.saveHasPartnerFlag(true);
-                        auth.savePartnerId(partnerId);
-                        user.hasPartner = true;
-                        user.partnerId = partnerId;
-
-                        /**
-                         * TODO: パートナー名取得
-                         */
-                        _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
-                          Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-                          auth.savePartnerName(data[constants.userName]);
-                          partnerName = data[constants.userName];
-
-                          //TODO: リファクタ
-                          //自分のパートナー情報更新
-                          _userReference.document(user.uuid).updateData({
-                            'hasPartner': user.hasPartner,
-                            'partnerId': user.partnerId
-                          }).whenComplete(() {
-                            //相手のパートナー情報更新
-                            _userReference.document(user.partnerId).updateData({
-                              'hasPartner': user.hasPartner,
-                              'partnerId': user.uuid
-                            }).whenComplete(() {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      actions: <Widget>[
-                                        FlatButton(
-                                            child: Text('$partnerNameさんと繋がる'),
-                                            onPressed: () {
-                                              //push通知
-                                              postQrScannedNotification();
-                                              //更新した自分のパートナー情報をアプリに反映
-                                              fetchChangedUserInfo();
-                                              //ダイアログ閉じる
-                                              Navigator.pop(context, false);
-                                            }
-                                        ),
-                                      ],
-                                    );
-                                  }
-                              );
-                            });
-                          });
-                        });
-                      });
-                    },
+                  Center(
+                    child: Text(partnerName),
                   ),
-                ),
-
-                Container(
-                  child: qr.generateQr(user.uuid),
-                ),
-              ],
+                  Container(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset('images/oshidori_icon.png'),
+                  ),
+                ],
+              ),
             ),
 
-          ),
+            SizedBox(height: 30,),
+            Center(child: Text(user.userName + 'さんのQRコード'),),
+            Center(
+              child: qr.generateQr(user.uuid),
+            ),
+            Center(
+              child: RaisedButton(
+                child: Text('パートナーと繋がる'),
+                onPressed: () {
+                  qr.readQr().then((partnerId) {
+                    /**
+                     *  TODO: パートナーIDをローカルストレージ保存
+                     */
+                    auth.saveHasPartnerFlag(true);
+                    auth.savePartnerId(partnerId);
+                    user.hasPartner = true;
+                    user.partnerId = partnerId;
 
+                    /**
+                     * TODO: パートナー名取得
+                     */
+                    _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+                      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+                      auth.savePartnerName(data[constants.userName]);
+                      setState(() {
+                        partnerName = data[constants.userName];
+                      });
+
+                      //TODO: リファクタ
+                      //自分のパートナー情報更新
+                      _userReference.document(user.uuid).updateData({
+                        'hasPartner': user.hasPartner,
+                        'partnerId': user.partnerId
+                      }).whenComplete(() {
+                        //相手のパートナー情報更新
+                        _userReference.document(user.partnerId).updateData({
+                          'hasPartner': user.hasPartner,
+                          'partnerId': user.uuid
+                        }).whenComplete(() {
+                          showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                actions: <Widget>[
+                                  FlatButton(
+                                      child: Text('$partnerNameさんと繋がる'),
+                                      onPressed: () {
+                                        //push通知
+                                        postQrScannedNotification();
+                                        //更新した自分のパートナー情報をアプリに反映
+                                        fetchChangedUserInfo();
+                                        //ダイアログ閉じる
+                                        Navigator.pop(context, false);
+                                      }
+                                  ),
+                                ],
+                              );
+                            }
+                          );
+                        });
+                      });
+                    });
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
 
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, size: 30),
@@ -352,27 +377,21 @@ class _MyHomePageState extends State<MyHomePage>
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
+          border: Border.all(color: constants.violet),
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: LabeledCheckbox(
           label: record.content,
-          subtitle:formatter.format(record.dueDate),
+          subtitle: formatter.format(record.dueDate),
           padding:EdgeInsets.all(10.0),
           value: record.status,
           onChanged: (bool newValue) {
             setState(() {
-              /**
-               * TODO: 削除周り精査
-               * 今はとりあえずFirestoreのドキュメントを物理削除している
-               */
-//              _onegaiReference.document(record.reference.documentID).updateData({'status': e});
               _onegaiReference.document(record.onegaiId).delete().then((value) {
                 print("deleted");
               }).catchError((error) {
                 print(error);
               });
-
             });
           },
         ),
@@ -400,16 +419,16 @@ class _MyHomePageState extends State<MyHomePage>
 class LabeledCheckbox extends StatelessWidget {
   const LabeledCheckbox({
     this.label,
+    this.subtitle,
     this.value,
     this.onChanged,
-    this.subtitle,
     this.padding,
   });
 
   final String label;
+  final String subtitle;
   final bool value;
   final Function onChanged;
-  final String subtitle;
   final EdgeInsets padding;
 
   @override
@@ -420,12 +439,22 @@ class LabeledCheckbox extends StatelessWidget {
           children: <Widget>[
             Expanded(
               child:Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-              Text(label,
-              style:TextStyle(fontSize: 25.0)),
-              Text(subtitle),]
-             ),),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    label,
+                    style:TextStyle(fontSize: 25.0)
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
+                      SizedBox(width: 5,),
+                      Text(subtitle),
+                    ],
+                  )
+                ]
+               ),
+              ),
               Checkbox(
               value: value,
               activeColor: constants.violet,
