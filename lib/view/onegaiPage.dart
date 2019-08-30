@@ -21,8 +21,9 @@ class OnegaiCreator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('おねがいする'),
-        backgroundColor: constants.violet,
+        iconTheme: IconThemeData(color: constants.violet),
+        title: Text('おねがいする', style: TextStyle(color: constants.violet),),
+        backgroundColor: Colors.white,
       ),
       body: Center(
         child: OnegaiForm(),
@@ -60,6 +61,7 @@ class OnegaiFormState extends State<OnegaiForm> {
           });
         }
         user.uuid = preferences.getString(constants.uuid);
+        user.userName = preferences.getString(constants.userName);
         user.partnerId = preferences.getString(constants.partnerId);
       });
     });
@@ -67,11 +69,12 @@ class OnegaiFormState extends State<OnegaiForm> {
 
   Future _selectDate() async {
     DateTime picked = await showDatePicker(
-        locale: Locale("ja"),
-        context: context,
-        initialDate: new DateTime.now(),
-        firstDate: DateTime(1994),
-        lastDate: DateTime(2025));
+      locale: Locale("ja"),
+      context: context,
+      initialDate: new DateTime.now(),
+      firstDate: DateTime(1994),
+      lastDate: DateTime(2025)
+    );
     if (picked != null) {
       setState(() => _onegai.dueDate = picked);
     }
@@ -79,18 +82,18 @@ class OnegaiFormState extends State<OnegaiForm> {
 
   void _buildNoPartnerDialog(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          content: ListTile(
-            title: Text('パートナーと繋がってね'),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            )
-          ],
-        )
+      context: context,
+      builder: (context) => AlertDialog(
+        content: ListTile(
+          title: Text('パートナーと繋がってね'),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          )
+        ],
+      )
     );
   }
 
@@ -181,7 +184,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                     activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
-                    title: Text('自分'),
+                    title: Text(user.userName),
                     value: Status.Mine,
                     groupValue: _radVal,
                     activeColor: constants.violet,
@@ -224,25 +227,21 @@ class OnegaiFormState extends State<OnegaiForm> {
                     ));
                     _formKey.currentState.save();
 
-                    // TODO: documentIDをフィールドに含める必要ある？
-                    //　TODO: リファクタ
-
                     // 自分
                     if (_radVal == Status.Mine) {
-
                       _onegaiReference.add(
-                          {
-                            'content': _onegai.content,
-                            'dueDate': _onegai.dueDate,
-                            'status': false,
-                            'owerRef': _userReference.document(user.uuid)
+                        {
+                          'content': _onegai.content,
+                          'dueDate': _onegai.dueDate,
+                          'status': false,
+                          'owerRef': _userReference.document(user.uuid)
 
-                          }
+                        }
                       ).then((docRef) {
                         _onegaiReference.document(docRef.documentID).updateData(
-                            {
-                              'onegaiId': docRef.documentID
-                            }
+                          {
+                            'onegaiId': docRef.documentID
+                          }
                         );
                         Navigator.of(context).pop('/home');
                       });
@@ -251,18 +250,18 @@ class OnegaiFormState extends State<OnegaiForm> {
                     } else if(_radVal == Status.Yours) {
 
                       _onegaiReference.add(
-                          {
-                            'content': _onegai.content,
-                            'dueDate': _onegai.dueDate,
-                            'status': false,
-                            'owerRef': _userReference.document(user.partnerId)
+                        {
+                          'content': _onegai.content,
+                          'dueDate': _onegai.dueDate,
+                          'status': false,
+                          'owerRef': _userReference.document(user.partnerId)
 
-                          }
+                        }
                       ).then((docRef) {
                         _onegaiReference.document(docRef.documentID).updateData(
-                            {
-                              'onegaiId': docRef.documentID
-                            }
+                          {
+                            'onegaiId': docRef.documentID
+                          }
                         );
                         Navigator.of(context).pop('/home');
                       });
@@ -270,29 +269,26 @@ class OnegaiFormState extends State<OnegaiForm> {
                     } else {
                       [user.uuid, user.partnerId].forEach((uuid) {
                         _onegaiReference.add(
-                            {
-                              'content': _onegai.content,
-                              'dueDate': _onegai.dueDate,
-                              'status': false,
-                              'owerRef': _userReference.document(uuid)
-
-                            }
+                          {
+                            'content': _onegai.content,
+                            'dueDate': _onegai.dueDate,
+                            'status': false,
+                            'owerRef': _userReference.document(uuid)
+                          }
                         ).then((docRef) {
                           _onegaiReference.document(docRef.documentID).updateData(
-                              {
-                                'onegaiId': docRef.documentID
-                              }
+                            {
+                              'onegaiId': docRef.documentID
+                            }
                           );
                         });
                       });
-
                       /**
                        * TODO:[refactor]値の初期化
                        */
                       user.uuid = preferences.getString(constants.uuid);
                       user.partnerId = preferences.getString(constants.partnerId);
                       Navigator.of(context).pop('/home');
-
                     }
                   }
                 },
