@@ -183,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: constants.violet),
+        iconTheme: IconThemeData(color: Colors.black),
         title: Container(
           height: 50,
           width: 200,
@@ -204,18 +204,18 @@ class _MyHomePageState extends State<MyHomePage>
             Container(
               height: 90,
               child: DrawerHeader(
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.center,
+//                child: Row(
+//                  mainAxisSize: MainAxisSize.max,
+//                  children: <Widget>[
+//                    Container(
+//                      alignment: Alignment.center,
 //                      width: 250,
 //                      child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: constants.grey),),
-                    ),
-                  ],
-                ),
+//                    ),
+//                  ],
+//                ),
                 decoration: BoxDecoration(
-                  color: Colors.white
+                    color: Colors.white
                 ),
               ),
             ),
@@ -225,37 +225,38 @@ class _MyHomePageState extends State<MyHomePage>
                 size: 77,
               )
             ),
-            Center(
-              child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
-            ),
-            SizedBox(height: 10,),
-
             Container(
-              width: 200,
-              padding: EdgeInsets.only(left: 60, right: 50),
-              child: Row(
+              child:Center(
+                child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+              ),
+            ),
+            SizedBox(width: 5.0),
+            Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
                     width: 20,
                     height: 20,
                     child: Image.asset('images/oshidori_icon.png'),
                   ),
-                  SizedBox(width: 2,),
-                  Center(
-                    child: Text(partnerName),
-                  ),
-                  SizedBox(width: 2,),
+                  SizedBox(width: 5.0),
+                  Text(partnerName),
+                  SizedBox(width: 5.0),
                   Container(
                     width: 20,
                     height: 20,
                     child: Image.asset('images/oshidori_icon2.png'),
-                  ),
+                    ),
                 ],
               ),
-            ),
 
-            SizedBox(height: 30,),
-            Center(child: Text(user.userName + 'さんのQRコード'),),
+            Center(
+                child: Container(
+                  padding: EdgeInsets.only(top:30.0),
+                  child:Text(user.userName + 'さんのQRコード'),
+                ),
+            ),
             Center(
               child: qr.generateQr(user.uuid),
             ),
