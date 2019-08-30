@@ -26,8 +26,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ログイン"),
-        backgroundColor: constants.violet,
+        title: Container(
+          height: 50,
+          width: 200,
+          child: Image.asset('icon/oshid_list_flag.png'),
+        ),
+        backgroundColor: Colors.white,
       ),
       body: Center(
         child: Form(

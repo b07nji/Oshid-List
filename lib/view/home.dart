@@ -84,9 +84,9 @@ class _MyHomePageState extends State<MyHomePage>
           },
         );
         _firebaseMessaging.requestNotificationPermissions(
-            const IosNotificationSettings(sound: true, badge: true, alert: true));
+          const IosNotificationSettings(sound: true, badge: true, alert: true));
         _firebaseMessaging.onIosSettingsRegistered
-            .listen((IosNotificationSettings settings) {
+          .listen((IosNotificationSettings settings) {
           print("Settings registered: $settings");
         });
         _firebaseMessaging.getToken().then((String token) {
@@ -183,8 +183,13 @@ class _MyHomePageState extends State<MyHomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Oshid-List'),
-        backgroundColor: constants.violet,
+        iconTheme: IconThemeData(color: constants.violet),
+        title: Container(
+          height: 50,
+          width: 200,
+          child: Image.asset('icon/oshid_list_flag.png'),
+        ),
+        backgroundColor: Colors.white,
       ),
       body: TabBarView(
         controller: _tabController,
@@ -205,19 +210,19 @@ class _MyHomePageState extends State<MyHomePage>
                     Container(
                       alignment: Alignment.center,
 //                      width: 250,
-                      child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
+//                      child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: constants.grey),),
                     ),
                   ],
                 ),
                 decoration: BoxDecoration(
-                  color: constants.violet
+                  color: Colors.white
                 ),
               ),
             ),
             Container(
               child: Icon(
                 const IconData(59475, fontFamily: 'MaterialIcons'),
-                size: 50,
+                size: 77,
               )
             ),
             Center(
@@ -235,13 +240,15 @@ class _MyHomePageState extends State<MyHomePage>
                     height: 20,
                     child: Image.asset('images/oshidori_icon.png'),
                   ),
+                  SizedBox(width: 2,),
                   Center(
                     child: Text(partnerName),
                   ),
+                  SizedBox(width: 2,),
                   Container(
                     width: 20,
                     height: 20,
-                    child: Image.asset('images/oshidori_icon.png'),
+                    child: Image.asset('images/oshidori_icon2.png'),
                   ),
                 ],
               ),
@@ -343,7 +350,6 @@ class _MyHomePageState extends State<MyHomePage>
         ),
         labelColor: Colors.black,
       ),
-
     );
   }
 
@@ -353,8 +359,10 @@ class _MyHomePageState extends State<MyHomePage>
 
     if (tab.key == Key('0')) {
       uuid = user.uuid;
+      print(uuid);
     } else {
       uuid = user.partnerId;
+      print(uuid);
     }
     return StreamBuilder<QuerySnapshot> (
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
@@ -371,7 +379,6 @@ class _MyHomePageState extends State<MyHomePage>
       padding: const EdgeInsets.only(top: 20.0),
       children: sortedList.map((data) => _buildListItem(context,data)).toList(),
     );
-
   }
 
   Widget _buildListItem(BuildContext context, dynamic data) {
@@ -445,41 +452,41 @@ class LabeledCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding:padding,
-        child: Row(
-          children: <Widget>[
-            Expanded(
+      padding:padding,
+      child: Row(
+        children: <Widget>[
+          Expanded(
 //              child:InkWell(
 //              onTap:(){Navigator.push(
 //                context,
 //                MaterialPageRoute(builder: (context) => OnegaiCreator()),
 //              );},
-              child:Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    label,
-                    style:TextStyle(fontSize: 25.0)
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
-                      SizedBox(width: 5,),
-                      Text(subtitle),
-                    ],
-                  )
-                ]
-               ),
-              ),
-              Checkbox(
-              value: value,
-              activeColor: constants.violet,
-              onChanged: (bool newValue) {
-                onChanged(newValue);
-              },
+            child:Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  label,
+                  style:TextStyle(fontSize: 25.0)
+                ),
+                Row(
+                  children: <Widget>[
+                    Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
+                    SizedBox(width: 5,),
+                    Text(subtitle),
+                  ],
+                )
+              ]
+             ),
             ),
-          ],
-        ),
+            Checkbox(
+            value: value,
+            activeColor: constants.violet,
+            onChanged: (bool newValue) {
+              onChanged(newValue);
+            },
+          ),
+        ],
+      ),
     );
   }
 }
