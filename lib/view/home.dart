@@ -184,7 +184,8 @@ class _MyHomePageState extends State<MyHomePage>
     return Scaffold(
       appBar: AppBar(
         title: Text('Oshid-List'),
-        backgroundColor: constants.violet,
+        backgroundColor: Colors.transparent,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: TabBarView(
         controller: _tabController,
@@ -217,16 +218,15 @@ class _MyHomePageState extends State<MyHomePage>
             Container(
               child: Icon(
                 const IconData(59475, fontFamily: 'MaterialIcons'),
-                size: 50,
-              )
+                size: 50,)
             ),
             Center(
               child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
             ),
             SizedBox(height: 10,),
 
-            Container(
-              width: 200,
+            Center(
+              child:Container(
               padding: EdgeInsets.only(left: 60, right: 50),
               child: Row(
                 children: <Widget>[
@@ -235,15 +235,14 @@ class _MyHomePageState extends State<MyHomePage>
                     height: 20,
                     child: Image.asset('images/oshidori_icon.png'),
                   ),
-                  Center(
-                    child: Text(partnerName),
-                  ),
+                  Text(partnerName),
                   Container(
                     width: 20,
                     height: 20,
                     child: Image.asset('images/oshidori_icon.png'),
                   ),
                 ],
+              ),
               ),
             ),
 
