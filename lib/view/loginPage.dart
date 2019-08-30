@@ -4,9 +4,12 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:uuid/uuid.dart';
 
+import '../constants.dart';
+
 final auth = Authentication();
 final user = User();
-final _userReference = Firestore.instance.collection('users');
+final constants = Constants();
+final _userReference = Firestore.instance.collection(constants.users);
 
 class LoginPage extends StatefulWidget {
 
@@ -24,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("ログイン"),
-        backgroundColor: Color.fromRGBO(207, 167, 205, 1),
+        backgroundColor: constants.violet,
       ),
       body: Center(
         child: Form(
@@ -47,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
                     return null;
                   },
                   onSaved: (value) {
-                    user.nickname = value;
+                    user.userName = value;
                     print('onsaved is caleed, value is:  ' + value);
                   },
                 ),
@@ -62,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
 
                       if (_formKey.currentState.validate()) {
                         _formKey.currentState.save();
-                        print(user.nickname);
+                        print(user.userName);
 //                        Scaffold.of(context)
 //                            .showSnackBar(SnackBar(content: Text('送信しています')));
                       }
@@ -75,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                       _userReference.document(user.uuid).setData(
                           {
                             'uuid': user.uuid,
-                            'name': user.nickname,
+                            'userName': user.userName,
                             'hasPartner': user.hasPartner,
                             'partnerId': user.partnerId
                           }
@@ -83,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.of(context).pushReplacementNamed('/home');
                       });
                       //3. add to preference. if no sentence below here, can't relate user with onegai
-                      auth.saveUserInfo(user.uuid, user.uuid);
+                      auth.saveUserInfo(user.uuid, user.userName);
                       auth.saveHasPartnerFlag(user.hasPartner);
                       auth.savePartnerInfo(user.partnerId);
 

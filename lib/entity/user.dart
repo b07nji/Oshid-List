@@ -1,5 +1,5 @@
 class User {
-  String nickname;
+  String userName;
   String uuid;
   String partnerId;
   bool hasPartner;
