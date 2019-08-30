@@ -13,6 +13,7 @@ final _userReference = Firestore.instance.collection(constants.users);
 final user = User();
 final auth = Authentication();
 final constants = Constants();
+
 var partnerName = 'パートナー';
 
 class OnegaiCreator extends StatelessWidget {
@@ -144,14 +145,20 @@ class OnegaiFormState extends State<OnegaiForm> {
             SizedBox(height: 20),
 
             TextFormField(
+              cursorColor:Colors.grey,
               validator: (value) {
                 if (value.isEmpty) return "おねがいを入れてね";
                 return null;
               },
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                labelText: 'おねがい'
-              ),
+                labelText: 'おねがい',
+                labelStyle: TextStyle(color: Colors.black),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),),
+                focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.deepPurpleAccent),),
+                ),
               onSaved: (value) => (setState(() => _onegai.content = value))
             ),
 

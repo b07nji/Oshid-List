@@ -39,9 +39,17 @@ class _LoginPageState extends State<LoginPage> {
               children: <Widget>[
                 const SizedBox(height: 24.0),
                 TextFormField(
+                  cursorColor:Colors.grey,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     labelText: 'ニックネーム',
+                    labelStyle: TextStyle(color: Colors.black),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.deepPurpleAccent),
+                    ),
                   ),
                   validator: (value) {
                     if (value.isEmpty) {

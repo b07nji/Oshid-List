@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 
 import '../constants.dart';
 import 'onegaiPage.dart';
+import 'pointPage.dart';
 
 import "package:intl/intl.dart";
 
@@ -49,6 +50,7 @@ class _MyHomePageState extends State<MyHomePage>
   ];
   TabController _tabController;
   SharedPreferences preferences;
+
 
   ///起動時に呼ばれる
   @override
@@ -175,6 +177,7 @@ class _MyHomePageState extends State<MyHomePage>
       });
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -352,7 +355,6 @@ class _MyHomePageState extends State<MyHomePage>
       uuid = user.uuid;
     } else {
       uuid = user.partnerId;
-
     }
     return StreamBuilder<QuerySnapshot> (
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
@@ -363,11 +365,13 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
+
   Widget _buildList(BuildContext context, List<dynamic> sortedList) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
       children: sortedList.map((data) => _buildListItem(context,data)).toList(),
     );
+
   }
 
   Widget _buildListItem(BuildContext context, dynamic data) {
@@ -381,6 +385,10 @@ class _MyHomePageState extends State<MyHomePage>
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: LabeledCheckbox(
+          onTap:(){Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OnegaiCreator()),
+          );},
           label: record.content,
           subtitle: formatter.format(record.dueDate),
           padding:EdgeInsets.all(10.0),
@@ -398,6 +406,7 @@ class _MyHomePageState extends State<MyHomePage>
       ),
     );
   }
+
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
     List<Map<String, dynamic>>  sortedList = [];
@@ -423,6 +432,7 @@ class LabeledCheckbox extends StatelessWidget {
     this.value,
     this.onChanged,
     this.padding,
+    this.onTap,
   });
 
   final String label;
@@ -430,6 +440,7 @@ class LabeledCheckbox extends StatelessWidget {
   final bool value;
   final Function onChanged;
   final EdgeInsets padding;
+  final Function onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -438,6 +449,11 @@ class LabeledCheckbox extends StatelessWidget {
         child: Row(
           children: <Widget>[
             Expanded(
+//              child:InkWell(
+//              onTap:(){Navigator.push(
+//                context,
+//                MaterialPageRoute(builder: (context) => OnegaiCreator()),
+//              );},
               child:Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[

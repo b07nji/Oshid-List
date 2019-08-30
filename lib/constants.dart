@@ -13,7 +13,7 @@ class Constants {
   final hasPartner = 'hasPartner';
 
   //色
-  final violet = Color.fromRGBO(207, 167, 205, 1);
+  final Color violet = Color.fromRGBO(207, 167, 205, 1);
   final grey = Color.fromRGBO(229, 229, 229, 1);
 
   //FCM
