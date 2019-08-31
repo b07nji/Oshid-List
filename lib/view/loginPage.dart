@@ -20,7 +20,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
 
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+//  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -33,80 +34,83 @@ class _LoginPageState extends State<LoginPage> {
         ),
         backgroundColor: Colors.white,
       ),
-      body: Center(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const SizedBox(height: 24.0),
-                TextFormField(
-                  cursorColor:Colors.grey,
-                  decoration: const InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'ニックネーム',
-                    labelStyle: TextStyle(color: Colors.black),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey),
+      body: Builder(
+        builder: (context) =>
+          Center(
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    const SizedBox(height: 24.0),
+                    TextFormField(
+                      cursorColor:Colors.grey,
+                      decoration: const InputDecoration(
+                        border: const UnderlineInputBorder(),
+                        labelText: 'ニックネーム',
+                        labelStyle: TextStyle(color: Colors.black),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.deepPurpleAccent),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'ニックネームを入れてね';
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        user.userName = value;
+                      },
                     ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.deepPurpleAccent),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'ニックネームを入れてね';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    user.userName = value;
-                  },
-                ),
-                const SizedBox(height: 24.0),
-                Center(
-                  child: RaisedButton(
-                    child: const Text('登録する'),
-                    onPressed: () {
-                      // TODO: ログイン処理
-                      //1. generate uuid
-                      var uuid = Uuid();
+                    const SizedBox(height: 24.0),
+                    Center(
+                      child: RaisedButton(
+                        child: const Text('登録する'),
+                        onPressed: () {
+                          // TODO: ログイン処理
+                          //1. generate uuid
+                          var uuid = Uuid();
 
-                      if (_formKey.currentState.validate()) {
-                        _formKey.currentState.save();
-//                        Scaffold.of(context)
-//                            .showSnackBar(SnackBar(content: Text('送信しています')));
-                      }
-                      //TODO: user.uuidへの代入をする場所考える
-                      user.uuid = uuid.v1();
-                      user.hasPartner = false;
-                      user.partnerId = "no partner";
-
-                      _userReference.document(user.uuid).setData(
-                          {
-                            'uuid': user.uuid,
-                            'userName': user.userName,
-                            'hasPartner': user.hasPartner,
-                            'partnerId': user.partnerId
+                          if (_formKey.currentState.validate()) {
+                            Scaffold.of(context)
+                                .showSnackBar(SnackBar(content: Text('送信しています')));
                           }
-                      ).whenComplete(() {
-                        Navigator.of(context).pushReplacementNamed('/home');
-                      });
-                      //3. add to preference. if no sentence below here, can't relate user with onegai
-                      auth.saveUserInfo(user.uuid, user.userName);
-                      auth.saveHasPartnerFlag(user.hasPartner);
-                      auth.savePartnerId(user.partnerId);
+                          _formKey.currentState.save();
+                          //TODO: user.uuidへの代入をする場所考える
+                          user.uuid = uuid.v1();
+                          user.hasPartner = false;
+                          user.partnerId = "no partner";
 
-                    },
-                  ),
+                          _userReference.document(user.uuid).setData(
+                              {
+                                'uuid': user.uuid,
+                                'userName': user.userName,
+                                'hasPartner': user.hasPartner,
+                                'partnerId': user.partnerId
+                              }
+                          ).whenComplete(() {
+                            Navigator.of(context).pushReplacementNamed('/home');
+                          });
+                          //3. add to preference. if no sentence below here, can't relate user with onegai
+                          auth.saveUserInfo(user.uuid, user.userName);
+                          auth.saveHasPartnerFlag(user.hasPartner);
+                          auth.savePartnerId(user.partnerId);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+
+      )
     );
   }
 }
