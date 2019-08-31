@@ -266,7 +266,7 @@ class _MyHomePageState extends State<MyHomePage>
                 onPressed: () {
                   qr.readQr().then((partnerId) {
 
-                    if (partnerId.isNotEmpty || partnerId == null) {
+                    if (partnerId.isEmpty || partnerId == null) {
                       showDialog(
                         barrierDismissible: false,
                         context: context,
@@ -293,7 +293,7 @@ class _MyHomePageState extends State<MyHomePage>
                     /**
                      * TODO: パートナー名取得
                      */
-                    _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+                    _userReference.document(partnerId).snapshots().forEach((snapshots) {
                       if (!snapshots.exists) {
                         showDialog(
                           barrierDismissible: false,
@@ -329,9 +329,6 @@ class _MyHomePageState extends State<MyHomePage>
 
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
                       auth.savePartnerName(data[constants.userName]);
-                      setState(() {
-                        partnerName = data[constants.userName];
-                      });
 
                       //TODO: リファクタ
                       //自分のパートナー情報更新
@@ -349,10 +346,15 @@ class _MyHomePageState extends State<MyHomePage>
                             context: context,
                             builder: (context) {
                               return AlertDialog(
+                                title: Text(data[constants.userName] + 'さんを見つけました！'),
                                 actions: <Widget>[
                                   FlatButton(
-                                    child: Text('$partnerNameさんと繋がる'),
+                                    child: Text('繋がる'),
                                     onPressed: () {
+                                      //メニューバーのパートナー名反映
+                                      setState(() {
+                                        partnerName = data[constants.userName];
+                                      });
                                       //push通知
                                       postQrScannedNotification();
                                       //更新した自分のパートナー情報をアプリに反映
