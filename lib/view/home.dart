@@ -266,7 +266,7 @@ class _MyHomePageState extends State<MyHomePage>
                 onPressed: () {
                   qr.readQr().then((partnerId) {
 
-                    if (partnerId.isNotEmpty || partnerId == null) {
+                    if (partnerId.isEmpty || partnerId == null) {
                       showDialog(
                         barrierDismissible: false,
                         context: context,
