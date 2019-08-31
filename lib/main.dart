@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:oshid_list_v1/view/home.dart';
@@ -50,7 +52,10 @@ class _MyAppState extends State<MyApp> {
       title: 'Oshid-List',
       home: _defaultHome,
       routes: <String, WidgetBuilder> {
-        '/home': (BuildContext context) => MyHomePage(),
+        '/home': (BuildContext context) {
+          Timer(Duration(milliseconds: 500), () {});
+          return MyHomePage();
+        }
       },
       localizationsDelegates: [
        GlobalMaterialLocalizations.delegate,

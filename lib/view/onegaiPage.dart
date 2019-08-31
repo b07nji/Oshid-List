@@ -301,7 +301,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                       /**
                        * TODO:[refactor]値の初期化
                        */
-                      Timer(Duration(milliseconds: 700), () {
+                      Timer(Duration(milliseconds: 1000), () {
                         Navigator.of(context).pop('/home');
 
                       });
