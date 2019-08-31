@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:oshid_list_v1/entity/onegai.dart';
@@ -299,9 +301,10 @@ class OnegaiFormState extends State<OnegaiForm> {
                       /**
                        * TODO:[refactor]値の初期化
                        */
-                      user.uuid = preferences.getString(constants.uuid);
-                      user.partnerId = preferences.getString(constants.partnerId);
-                      Navigator.of(context).pop('/home');
+                      Timer(Duration(milliseconds: 1000), () {
+                        Navigator.of(context).pop('/home');
+
+                      });
                     }
                   }
                 },
