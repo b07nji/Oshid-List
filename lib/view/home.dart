@@ -265,18 +265,68 @@ class _MyHomePageState extends State<MyHomePage>
                 child: Text('パートナーと繋がる'),
                 onPressed: () {
                   qr.readQr().then((partnerId) {
-                    /**
-                     *  TODO: パートナーIDをローカルストレージ保存
-                     */
-                    auth.saveHasPartnerFlag(true);
-                    auth.savePartnerId(partnerId);
-                    user.hasPartner = true;
-                    user.partnerId = partnerId;
 
+                    if (partnerId.isNotEmpty || partnerId == null) {
+                      showDialog(
+                        barrierDismissible: false,
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            actions: <Widget>[
+                              FlatButton(
+                                child: Text('パートナーのQRコードを読み込んでね'),
+                                onPressed: () {
+                                  //push通知
+                                  postQrScannedNotification();
+                                  //更新した自分のパートナー情報をアプリに反映
+                                  fetchChangedUserInfo();
+                                  //ダイアログ閉じる
+                                  Navigator.pop(context, false);
+                                }
+                              ),
+                            ],
+                          );
+                        }
+                      );
+                      return null;
+                    }
                     /**
                      * TODO: パートナー名取得
                      */
                     _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+                      if (!snapshots.exists) {
+                        showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: Text('パートナーのQRコードを読み込んでね'),
+                                  onPressed: () {
+                                    //push通知
+                                    postQrScannedNotification();
+                                    //更新した自分のパートナー情報をアプリに反映
+                                    fetchChangedUserInfo();
+                                    //ダイアログ閉じる
+                                    Navigator.pop(context, false);
+                                  }
+                                ),
+                              ],
+                            );
+                          }
+                        );
+                        return null;
+                      }
+
+                      /**
+                       *  TODO: パートナーIDをローカルストレージ保存
+                       */
+                      auth.saveHasPartnerFlag(true);
+                      auth.savePartnerId(partnerId);
+                      user.hasPartner = true;
+                      user.partnerId = partnerId;
+
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
                       auth.savePartnerName(data[constants.userName]);
                       setState(() {
@@ -301,15 +351,15 @@ class _MyHomePageState extends State<MyHomePage>
                               return AlertDialog(
                                 actions: <Widget>[
                                   FlatButton(
-                                      child: Text('$partnerNameさんと繋がる'),
-                                      onPressed: () {
-                                        //push通知
-                                        postQrScannedNotification();
-                                        //更新した自分のパートナー情報をアプリに反映
-                                        fetchChangedUserInfo();
-                                        //ダイアログ閉じる
-                                        Navigator.pop(context, false);
-                                      }
+                                    child: Text('$partnerNameさんと繋がる'),
+                                    onPressed: () {
+                                      //push通知
+                                      postQrScannedNotification();
+                                      //更新した自分のパートナー情報をアプリに反映
+                                      fetchChangedUserInfo();
+                                      //ダイアログ閉じる
+                                      Navigator.pop(context, false);
+                                    }
                                   ),
                                 ],
                               );
