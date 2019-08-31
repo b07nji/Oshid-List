@@ -104,28 +104,43 @@ class OnegaiFormState extends State<OnegaiForm> {
           if (user.hasPartner) {
             _radVal = value;
             user.uuid = preferences.getString(constants.uuid);
-            print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
           } else {
             _buildNoPartnerDialog(context);
           }
 
           break;
         case Status.Yours:
+          //パートナーが自分と繋がっているか
+          _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
+              _buildNoPartnerDialog(context);
+            }
+          });
+
+          //自分がパートナーと繋がっているか
           if (user.hasPartner) {
             _radVal = value;
             user.partnerId = preferences.getString(constants.partnerId);
-            print('mine: uuid ' + user.uuid + ', partner ' + user.partnerId);
 
           } else {
             _buildNoPartnerDialog(context);
           }
           break;
         case Status.Together:
+           //パートナーが自分と繋がっているか
+          _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
+              _buildNoPartnerDialog(context);
+            }
+          });
+
+          //自分がパートナーと繋がっているか
           if (user.hasPartner) {
             _radVal = value;
             user.uuid = preferences.getString(constants.uuid);
             user.partnerId = preferences.getString(constants.partnerId);
-            print('together: uuid ' + user.uuid + ', partner ' + user.partnerId);
 
           } else {
             _buildNoPartnerDialog(context);
@@ -235,7 +250,6 @@ class OnegaiFormState extends State<OnegaiForm> {
                           'dueDate': _onegai.dueDate,
                           'status': false,
                           'owerRef': _userReference.document(user.uuid)
-
                         }
                       ).then((docRef) {
                         _onegaiReference.document(docRef.documentID).updateData(
@@ -248,20 +262,19 @@ class OnegaiFormState extends State<OnegaiForm> {
 
                       // パートナー
                     } else if(_radVal == Status.Yours) {
-
                       _onegaiReference.add(
-                        {
-                          'content': _onegai.content,
-                          'dueDate': _onegai.dueDate,
-                          'status': false,
-                          'owerRef': _userReference.document(user.partnerId)
+                          {
+                            'content': _onegai.content,
+                            'dueDate': _onegai.dueDate,
+                            'status': false,
+                            'owerRef': _userReference.document(user.partnerId)
 
-                        }
+                          }
                       ).then((docRef) {
                         _onegaiReference.document(docRef.documentID).updateData(
-                          {
-                            'onegaiId': docRef.documentID
-                          }
+                            {
+                              'onegaiId': docRef.documentID
+                            }
                         );
                         Navigator.of(context).pop('/home');
                       });
@@ -269,17 +282,17 @@ class OnegaiFormState extends State<OnegaiForm> {
                     } else {
                       [user.uuid, user.partnerId].forEach((uuid) {
                         _onegaiReference.add(
-                          {
-                            'content': _onegai.content,
-                            'dueDate': _onegai.dueDate,
-                            'status': false,
-                            'owerRef': _userReference.document(uuid)
-                          }
+                            {
+                              'content': _onegai.content,
+                              'dueDate': _onegai.dueDate,
+                              'status': false,
+                              'owerRef': _userReference.document(uuid)
+                            }
                         ).then((docRef) {
                           _onegaiReference.document(docRef.documentID).updateData(
-                            {
-                              'onegaiId': docRef.documentID
-                            }
+                              {
+                                'onegaiId': docRef.documentID
+                              }
                           );
                         });
                       });
