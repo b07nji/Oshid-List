@@ -187,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage>
         title: Container(
           height: 50,
           width: 200,
-          child: Image.asset('icon/oshid_list_flag.png'),
+          child: Image.asset(constants.flag),
         ),
         backgroundColor: Colors.white,
       ),
@@ -204,16 +204,6 @@ class _MyHomePageState extends State<MyHomePage>
             Container(
               height: 90,
               child: DrawerHeader(
-//                child: Row(
-//                  mainAxisSize: MainAxisSize.max,
-//                  children: <Widget>[
-//                    Container(
-//                      alignment: Alignment.center,
-//                      width: 250,
-//                      child: Text('メニュー', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: constants.grey),),
-//                    ),
-//                  ],
-//                ),
                 decoration: BoxDecoration(
                     color: Colors.white
                 ),
@@ -236,25 +226,27 @@ class _MyHomePageState extends State<MyHomePage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    width: 20,
-                    height: 20,
-                    child: Image.asset('images/oshidori_icon.png'),
+                    width: user.hasPartner ? 20 : 0,
+                    height: user.hasPartner ? 20 : 0,
+                    child: user.hasPartner ? Image.asset(constants.oshidoriBlue) : null,
                   ),
-                  SizedBox(width: 5.0),
-                  Text(partnerName),
-                  SizedBox(width: 5.0),
+                  SizedBox(width: user.hasPartner? 10.0 : 0),
                   Container(
                     width: 20,
                     height: 20,
-                    child: Image.asset('images/oshidori_icon2.png'),
+                    child: Image.asset(constants.oshidoriGreen),
                     ),
                 ],
               ),
 
             Center(
+              child: Text(partnerName),
+            ),
+
+            Center(
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
-                  child:Text(user.userName + 'さんのQRコード'),
+                  child:Text(user.userName + 'のQRコード'),
                 ),
             ),
             Center(
@@ -379,8 +371,8 @@ class _MyHomePageState extends State<MyHomePage>
       ),
 
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add, size: 30),
-        backgroundColor: constants.violet,
+        child: Icon(Icons.add, size: 30, color: constants.violet,),
+        backgroundColor: constants.floatingButton,
         onPressed: () {
           Navigator.push(
             context,
