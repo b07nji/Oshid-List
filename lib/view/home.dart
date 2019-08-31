@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -155,25 +156,19 @@ class _MyHomePageState extends State<MyHomePage>
 
       auth.saveHasPartnerFlag(data[constants.hasPartner]);
       user.hasPartner = data[constants.hasPartner];
-      auth.hasPartner().then((value) {
-        print('has partner?: ' + value.toString());
-      });
+      print('tttttttttttttttttttttest' + user.hasPartner.toString());
 
       auth.savePartnerId(data[constants.partnerId]);
       user.partnerId = data[constants.partnerId];
-      auth.getPartnerId().then((value) {
-        print('what is partner id: ' + value);
-
-      });
+      print('tttttttttttttttttttttest' + user.partnerId);
 
       _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
         Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
         auth.savePartnerName(data[constants.userName]);
-        auth.getPartnerName().then((value) {
-          setState(() {
-            partnerName = value;
-          });
+        setState(() {
+          partnerName = data[constants.userName];
         });
+        print('tttttttttttttttttttttttttttest' + partnerName);
       });
     });
   }
@@ -230,7 +225,7 @@ class _MyHomePageState extends State<MyHomePage>
                     height: user.hasPartner ? 20 : 0,
                     child: user.hasPartner ? Image.asset(constants.oshidoriBlue) : null,
                   ),
-                  SizedBox(width: user.hasPartner? 10.0 : 0),
+                  SizedBox(width: user.hasPartner ? 10.0 : 0),
                   Container(
                     width: 20,
                     height: 20,
@@ -311,26 +306,18 @@ class _MyHomePageState extends State<MyHomePage>
                         return null;
                       }
 
-                      /**
-                       *  TODO: パートナーIDをローカルストレージ保存
-                       */
-                      auth.saveHasPartnerFlag(true);
-                      auth.savePartnerId(partnerId);
-                      user.hasPartner = true;
-                      user.partnerId = partnerId;
-
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
                       auth.savePartnerName(data[constants.userName]);
 
                       //TODO: リファクタ
                       //自分のパートナー情報更新
                       _userReference.document(user.uuid).updateData({
-                        'hasPartner': user.hasPartner,
-                        'partnerId': user.partnerId
+                        'hasPartner': true,
+                        'partnerId': partnerId
                       }).whenComplete(() {
                         //相手のパートナー情報更新
-                        _userReference.document(user.partnerId).updateData({
-                          'hasPartner': user.hasPartner,
+                        _userReference.document(partnerId).updateData({
+                          'hasPartner': true,
                           'partnerId': user.uuid
                         }).whenComplete(() {
                           showDialog(
@@ -345,6 +332,13 @@ class _MyHomePageState extends State<MyHomePage>
                                     onPressed: () {
                                       //メニューバーのパートナー名反映
                                       setState(() {
+                                        /**
+                                         *  TODO: パートナーIDをローカルストレージ保存
+                                         */
+                                        auth.saveHasPartnerFlag(true);
+                                        auth.savePartnerId(partnerId);
+                                        user.hasPartner = true;
+                                        user.partnerId = partnerId;
                                         partnerName = data[constants.userName];
                                       });
                                       //push通知
@@ -446,11 +440,13 @@ class _MyHomePageState extends State<MyHomePage>
           padding:EdgeInsets.all(10.0),
           value: record.status,
           onChanged: (bool newValue) {
-            setState(() {
-              _onegaiReference.document(record.onegaiId).delete().then((value) {
-                print("deleted");
-              }).catchError((error) {
-                print(error);
+            Timer(Duration(milliseconds: 500), () {
+              setState(() {
+                _onegaiReference.document(record.onegaiId).delete().then((value) {
+                  print("deleted");
+                }).catchError((error) {
+                  print(error);
+                });
               });
             });
           },
