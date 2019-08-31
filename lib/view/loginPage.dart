@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
         title: Container(
           height: 50,
           width: 200,
-          child: Image.asset('icon/oshid_list_flag.png'),
+          child: Image.asset(constants.flag),
         ),
         backgroundColor: Colors.white,
       ),
