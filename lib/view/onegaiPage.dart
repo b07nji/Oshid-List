@@ -25,7 +25,7 @@ class OnegaiCreator extends StatelessWidget {
       appBar: AppBar(
         iconTheme: IconThemeData(color: constants.violet),
         title: Text('おねがいする', style: TextStyle(color: constants.violet),),
-        backgroundColor: Colors.white,
+//        backgroundColor: Colors.white,
       ),
       body: Center(
         child: OnegaiForm(),
@@ -192,19 +192,19 @@ class OnegaiFormState extends State<OnegaiForm> {
                     title: Text(partnerName),
                     value: Status.Yours,
                     groupValue: _radVal,
-                    activeColor: constants.violet,
+//                    activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
                     title: Text('ふたりで'),
                     value: Status.Together,
                     groupValue: _radVal,
-                    activeColor: constants.violet,
+//                    activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
                     title: Text(user.userName),
                     value: Status.Mine,
                     groupValue: _radVal,
-                    activeColor: constants.violet,
+//                    activeColor: constants.violet,
                     onChanged: _onChanged),
                 ],
               ),

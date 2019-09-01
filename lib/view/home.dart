@@ -185,7 +185,7 @@ class _MyHomePageState extends State<MyHomePage>
           width: 200,
           child: Image.asset(constants.flag),
         ),
-        backgroundColor: Colors.white,
+//        backgroundColor: Colors.white,
       ),
       body: TabBarView(
         controller: _tabController,
@@ -201,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage>
               height: 90,
               child: DrawerHeader(
                 decoration: BoxDecoration(
-                    color: Colors.white
+//                    color: Colors.white
                 ),
               ),
             ),
@@ -381,7 +381,7 @@ class _MyHomePageState extends State<MyHomePage>
         tabs: tabs,
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
-        indicatorColor: constants.violet,
+//        indicatorColor: constants.violet,
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
