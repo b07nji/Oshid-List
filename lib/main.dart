@@ -53,7 +53,6 @@ class _MyAppState extends State<MyApp> {
       home: _defaultHome,
       routes: <String, WidgetBuilder> {
         '/home': (BuildContext context) {
-          Timer(Duration(milliseconds: 500), () {});
           return MyHomePage();
         }
       },

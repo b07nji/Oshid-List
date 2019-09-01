@@ -1,22 +1,20 @@
 import 'dart:async';
+import 'dart:convert' show json;
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:http/http.dart' as http;
+import "package:intl/intl.dart";
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert' show json;
-import 'package:http/http.dart' as http;
 
 import '../constants.dart';
 import 'onegaiPage.dart';
-import 'pointPage.dart';
-
-import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection(constants.onegai);
 final _userReference = Firestore.instance.collection(constants.users);
@@ -28,6 +26,8 @@ final qr = QRUtils();
 final formatter = DateFormat('M/d E', "ja");
 final constants = Constants();
 var partnerName = 'パートナーがいません';
+var _todoStatus = false;
+
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -39,6 +39,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
   // 以下をStateの中に記述
+
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
@@ -431,17 +432,20 @@ class _MyHomePageState extends State<MyHomePage>
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: LabeledCheckbox(
-          onTap:(){Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => OnegaiCreator()),
-          );},
+//          onTap:(value){
+//            Navigator.push(
+//              context,
+//              MaterialPageRoute(builder: (context) => OnegaiCreator()),
+//            );
+//          },
           label: record.content,
           subtitle: formatter.format(record.dueDate),
           padding:EdgeInsets.all(10.0),
-          value: record.status,
-          onChanged: (bool newValue) {
-            Timer(Duration(milliseconds: 500), () {
-              setState(() {
+          value: _todoStatus,
+          onChanged: (bool value) {
+            _todoStatus = value;
+            setState(() {
+              Timer(Duration(milliseconds: 600), () {
                 _onegaiReference.document(record.onegaiId).delete().then((value) {
                   print("deleted");
                 }).catchError((error) {
@@ -549,10 +553,10 @@ class Record {
       dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
       status = map['status'];
 
-//  Record.fromSnapshot(dynamic snapshot): this.fromMap(
-//      snapshot.data,
-//      reference: snapshot.reference
-//  );
+  Record.fromSnapshot(dynamic snapshot): this.fromMap(
+      snapshot.data,
+      reference: snapshot.reference
+  );
 
   @override
   String toString() => "Record<$content: $dueDate>";

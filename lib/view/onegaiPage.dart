@@ -292,9 +292,9 @@ class OnegaiFormState extends State<OnegaiForm> {
                             }
                         ).then((docRef) {
                           _onegaiReference.document(docRef.documentID).updateData(
-                              {
-                                'onegaiId': docRef.documentID
-                              }
+                            {
+                              'onegaiId': docRef.documentID
+                            }
                           );
                         });
                       });
