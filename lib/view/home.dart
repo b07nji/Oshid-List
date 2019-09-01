@@ -26,7 +26,7 @@ final qr = QRUtils();
 final formatter = DateFormat('M/d E', "ja");
 final constants = Constants();
 var partnerName = 'パートナーがいません';
-var _todoStatus = false;
+bool status = false;
 
 
 class MyHomePage extends StatefulWidget {
@@ -441,9 +441,9 @@ class _MyHomePageState extends State<MyHomePage>
           label: record.content,
           subtitle: formatter.format(record.dueDate),
           padding:EdgeInsets.all(10.0),
-          value: _todoStatus,
-          onChanged: (bool value) {
-            _todoStatus = value;
+          value: record.status,
+          onChanged: (bool newValue) {
+            record.status = newValue;
             setState(() {
               Timer(Duration(milliseconds: 600), () {
                 _onegaiReference.document(record.onegaiId).delete().then((value) {
@@ -540,7 +540,7 @@ class Record {
   final String onegaiId;
   final String content;
   final DateTime dueDate;
-  bool status = true;
+  bool status = false;
   final DocumentReference reference;
 
   Record.fromMap(Map<String, dynamic> map, {this.reference}) :
