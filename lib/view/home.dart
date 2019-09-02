@@ -167,7 +167,6 @@ class _MyHomePageState extends State<MyHomePage>
                 child: Text('パートナーと繋がる'),
                 onPressed: () {
                   qr.readQr().then((partnerId) {
-
                     if (partnerId.isEmpty || partnerId == null) {
                       showDialog(
                         barrierDismissible: false,
@@ -254,6 +253,7 @@ class _MyHomePageState extends State<MyHomePage>
                                         auth.savePartnerId(partnerId);
                                         user.hasPartner = true;
                                         user.partnerId = partnerId;
+                                        hasPartner = true;
                                         partnerName = data[constants.userName];
                                       });
                                       //push通知
@@ -388,6 +388,7 @@ class _MyHomePageState extends State<MyHomePage>
         Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
         auth.savePartnerName(data[constants.userName]);
         setState(() {
+          hasPartner = true;
           partnerName = data[constants.userName];
         });
       });
