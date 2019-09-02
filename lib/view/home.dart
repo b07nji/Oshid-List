@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
@@ -50,49 +51,14 @@ class _MyHomePageState extends State<MyHomePage>
   ];
   TabController _tabController;
 
-  //TODO: 別クラスにまとめて別ページでも同じ処理できるようにする
-  void initializer(SharedPreferences pref) async {
-    user.uuid = pref.getString(constants.uuid);
-    user.userName = pref.getString(constants.userName);
-    user.hasPartner = pref.getBool(constants.hasPartner);
-    user.partnerId = pref.getString(constants.partnerId);
-    if (user.hasPartner) partnerName = pref.getString(constants.partnerName);
-
-    //FCM設定
-    _firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        print("onMessage: $message");
-        _buildPushDialog(context, message);
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        print("onLaunch: $message");
-        _buildPushDialog(context, message);
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print("onResume: $message");
-        _buildPushDialog(context, message);
-      },
-    );
-    _firebaseMessaging.requestNotificationPermissions(
-        const IosNotificationSettings(sound: true, badge: true, alert: true));
-    _firebaseMessaging.onIosSettingsRegistered
-        .listen((IosNotificationSettings settings) {
-      print("Settings registered: $settings");
-    });
-    _firebaseMessaging.getToken().then((String token) {
-      assert(token != null);
-      print("Push Messaging token: $token");
-    });
-    _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
-  }
-
   ///起動時に呼ばれる
   @override
   void initState() {
     super.initState();
     SharedPreferences.getInstance().then((SharedPreferences pref) {
       setState(() {
-        initializer(pref);
+        initUserInfo(pref);
+        initFCM();
       });
     });
     //タブ生成
@@ -119,54 +85,6 @@ class _MyHomePageState extends State<MyHomePage>
       )
     );
   }
-
-  void postQrScannedNotification() async {
-    var serverKey = constants.serverKey;
-
-    final notification = {
-      "to": "/topics/" + user.partnerId,
-      "notification": {"title": user.userName + "さんと繋がりました！"},
-      "priority": 10,
-    };
-
-    final headers = {
-      'content-type': 'application/json',
-      'Authorization': 'key=$serverKey'
-    };
-
-    final response = await http.post(
-      constants.url,
-      body: json.encode(notification),
-      headers: headers,
-    );
-
-    if (response.statusCode == 200) {
-      print("pushed notification successfully");
-    } else {
-      print("failed push notification");
-    }
-  }
-
-  void fetchChangedUserInfo() {
-    _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-
-      auth.saveHasPartnerFlag(data[constants.hasPartner]);
-      user.hasPartner = data[constants.hasPartner];
-
-      auth.savePartnerId(data[constants.partnerId]);
-      user.partnerId = data[constants.partnerId];
-
-      _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
-        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-        auth.savePartnerName(data[constants.userName]);
-        setState(() {
-          partnerName = data[constants.userName];
-        });
-      });
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -387,10 +305,92 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
+  void initUserInfo(SharedPreferences pref) {
+    user.uuid = pref.getString(constants.uuid);
+    user.userName = pref.getString(constants.userName);
+    user.hasPartner = pref.getBool(constants.hasPartner);
+    user.partnerId = pref.getString(constants.partnerId);
+    if (user.hasPartner) partnerName = pref.getString(constants.partnerName);
+  }
+
+  void initFCM() {
+    //FCM設定
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+        _buildPushDialog(context, message);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        _buildPushDialog(context, message);
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        _buildPushDialog(context, message);
+      },
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings) {
+      print("Settings registered: $settings");
+    });
+    _firebaseMessaging.getToken().then((String token) {
+      assert(token != null);
+      print("Push Messaging token: $token");
+    });
+    _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+  }
+
+  void postQrScannedNotification() async {
+    var serverKey = constants.serverKey;
+
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": user.userName + "さんと繋がりました！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
+  }
+
+  void fetchChangedUserInfo() {
+    _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+
+      auth.saveHasPartnerFlag(data[constants.hasPartner]);
+      user.hasPartner = data[constants.hasPartner];
+
+      auth.savePartnerId(data[constants.partnerId]);
+      user.partnerId = data[constants.partnerId];
+
+      _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+        auth.savePartnerName(data[constants.userName]);
+        setState(() {
+          partnerName = data[constants.userName];
+        });
+      });
+    });
+  }
+
   Widget _createTab(Tab tab, BuildContext context) {
-
     var uuid;
-
     if (tab.key == Key('0')) {
       uuid = user.uuid;
       print(uuid);
@@ -407,7 +407,6 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
-
   Widget _buildList(BuildContext context, List<dynamic> sortedList) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
@@ -416,7 +415,7 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   Widget _buildListItem(BuildContext context, dynamic data) {
-    final record = Record.fromMap(data);
+    final record = OnegaiResponse.fromMap(data);
     return Padding(
       key: ValueKey(record.content),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -449,7 +448,6 @@ class _MyHomePageState extends State<MyHomePage>
       ),
     );
   }
-
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
     List<Map<String, dynamic>>  sortedList = [];
@@ -527,28 +525,3 @@ class LabeledCheckbox extends StatelessWidget {
   }
 }
 
-class Record {
-  final String onegaiId;
-  final String content;
-  final DateTime dueDate;
-  bool status = true;
-  final DocumentReference reference;
-
-  Record.fromMap(Map<String, dynamic> map, {this.reference}) :
-      assert(map['onegaiId'] != null),
-      assert(map['content'] != null),
-      assert((map['dueDate']) != null),
-      assert((map['status']) != null),
-      onegaiId = map['onegaiId'],
-      content = map['content'],
-      dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
-      status = map['status'];
-
-//  Record.fromSnapshot(dynamic snapshot): this.fromMap(
-//      snapshot.data,
-//      reference: snapshot.reference
-//  );
-
-  @override
-  String toString() => "Record<$content: $dueDate>";
-}
