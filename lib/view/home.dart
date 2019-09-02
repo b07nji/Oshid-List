@@ -50,15 +50,13 @@ class _MyHomePageState extends State<MyHomePage>
   ];
   TabController _tabController;
 
+  //TODO: 別クラスにまとめて別ページでも同じ処理できるようにする
   void initializer(SharedPreferences pref) async {
     user.uuid = pref.getString(constants.uuid);
     user.userName = pref.getString(constants.userName);
     user.hasPartner = pref.getBool(constants.hasPartner);
     user.partnerId = pref.getString(constants.partnerId);
     if (user.hasPartner) partnerName = pref.getString(constants.partnerName);
-    print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
-
-    //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
 
     //FCM設定
     _firebaseMessaging.configure(
@@ -97,7 +95,6 @@ class _MyHomePageState extends State<MyHomePage>
         initializer(pref);
       });
     });
-
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
 
@@ -156,11 +153,9 @@ class _MyHomePageState extends State<MyHomePage>
 
       auth.saveHasPartnerFlag(data[constants.hasPartner]);
       user.hasPartner = data[constants.hasPartner];
-      print('tttttttttttttttttttttest' + user.hasPartner.toString());
 
       auth.savePartnerId(data[constants.partnerId]);
       user.partnerId = data[constants.partnerId];
-      print('tttttttttttttttttttttest' + user.partnerId);
 
       _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
         Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
@@ -168,7 +163,6 @@ class _MyHomePageState extends State<MyHomePage>
         setState(() {
           partnerName = data[constants.userName];
         });
-        print('tttttttttttttttttttttttttttest' + partnerName);
       });
     });
   }
@@ -242,6 +236,7 @@ class _MyHomePageState extends State<MyHomePage>
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
                   child:Text(user.userName + 'のQRコード'),
+
                 ),
             ),
             Center(
