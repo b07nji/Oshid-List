@@ -27,7 +27,9 @@ final user = User();
 final qr = QRUtils();
 final formatter = DateFormat('M/d E', "ja");
 final constants = Constants();
+var userName = 'user';
 var partnerName = 'パートナーがいません';
+var hasPartner = false;
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -124,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             Container(
               child:Center(
-                child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+                child: Text(userName, style: TextStyle(fontSize: 20, color: constants.violet),),
               ),
             ),
             SizedBox(width: 5.0),
@@ -133,11 +135,11 @@ class _MyHomePageState extends State<MyHomePage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    width: user.hasPartner ? 20 : 0,
-                    height: user.hasPartner ? 20 : 0,
-                    child: user.hasPartner ? Image.asset(constants.oshidoriBlue) : null,
+                    width: hasPartner ? 20 : 0,
+                    height: hasPartner ? 20 : 0,
+                    child: hasPartner ? Image.asset(constants.oshidoriBlue) : null,
                   ),
-                  SizedBox(width: user.hasPartner ? 10.0 : 0),
+                  SizedBox(width: hasPartner ? 10.0 : 0),
                   Container(
                     width: 20,
                     height: 20,
@@ -153,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage>
             Center(
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
-                  child:Text(user.userName + 'のQRコード'),
+                  child:Text('$userNameのQRコード'),
 
                 ),
             ),
@@ -310,6 +312,9 @@ class _MyHomePageState extends State<MyHomePage>
     user.userName = pref.getString(constants.userName);
     user.hasPartner = pref.getBool(constants.hasPartner);
     user.partnerId = pref.getString(constants.partnerId);
+
+    userName = user.userName;
+    hasPartner = user.hasPartner;
     if (user.hasPartner) partnerName = pref.getString(constants.partnerName);
   }
 
