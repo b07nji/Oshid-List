@@ -131,22 +131,22 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             SizedBox(width: 5.0),
             Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    width: hasPartner ? 20 : 0,
-                    height: hasPartner ? 20 : 0,
-                    child: hasPartner ? Image.asset(constants.oshidoriBlue) : null,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: hasPartner ? 20 : 0,
+                  height: hasPartner ? 20 : 0,
+                  child: hasPartner ? Image.asset(constants.oshidoriBlue) : null,
+                ),
+                SizedBox(width: hasPartner ? 10.0 : 0),
+                Container(
+                  width: 20,
+                  height: 20,
+                  child: Image.asset(constants.oshidoriGreen),
                   ),
-                  SizedBox(width: hasPartner ? 10.0 : 0),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    child: Image.asset(constants.oshidoriGreen),
-                    ),
-                ],
-              ),
+              ],
+            ),
 
             Center(
               child: Text(partnerName),
@@ -194,8 +194,10 @@ class _MyHomePageState extends State<MyHomePage>
                     /**
                      * TODO: パートナー名取得
                      */
+                    var count = 0;
                     _userReference.document(partnerId).snapshots().forEach((snapshots) {
                       if (!snapshots.exists) {
+                        if (count == 1) return null;
                         showDialog(
                           barrierDismissible: false,
                           context: context,
@@ -219,6 +221,8 @@ class _MyHomePageState extends State<MyHomePage>
                         );
                         return null;
                       }
+
+                      count++;
 
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
                       auth.savePartnerName(data[constants.userName]);
@@ -347,12 +351,37 @@ class _MyHomePageState extends State<MyHomePage>
     _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
   }
 
-  void postQrScannedNotification() async {
+  void sendCompleteNotification(String onegai) async {
     var serverKey = constants.serverKey;
-
     final notification = {
       "to": "/topics/" + user.partnerId,
-      "notification": {"title": user.userName + "さんと繋がりました！"},
+      "notification": {"title": "$userNameが$onegaiを完了しました！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
+  }
+
+  void postQrScannedNotification() async {
+    var serverKey = constants.serverKey;
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": "$userNameさんと繋がりました！"},
       "priority": 10,
     };
 
@@ -408,19 +437,19 @@ class _MyHomePageState extends State<MyHomePage>
       stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
-        return _buildList(context, sortByDate(snapshot.data.documents));
+        return _buildList(context, sortByDate(snapshot.data.documents), tab.key);
       },
     );
   }
 
-  Widget _buildList(BuildContext context, List<dynamic> sortedList) {
+  Widget _buildList(BuildContext context, List<dynamic> sortedList, Key key) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: sortedList.map((data) => _buildListItem(context,data)).toList(),
+      children: sortedList.map((data) => _buildListItem(context,data, key)).toList(),
     );
   }
 
-  Widget _buildListItem(BuildContext context, dynamic data) {
+  Widget _buildListItem(BuildContext context, dynamic data, Key key) {
     final _onegai = OnegaiResponse.fromMap(data);
 
     return Padding(
@@ -447,6 +476,11 @@ class _MyHomePageState extends State<MyHomePage>
             Timer(Duration(milliseconds: 500), () {
               setState(() {
                 _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
+                  //TODO: push通知
+                  print(_onegai.reference);
+
+                  if (key == Key('0')) sendCompleteNotification(_onegai.content);
+
                   print("deleted");
                 }).catchError((error) {
                   print(error);
@@ -460,12 +494,12 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   bool isOver(DateTime due) {
-    return due.millisecondsSinceEpoch < Timestamp.now().millisecondsSinceEpoch;
+    DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return DateTime(due.year, due.month, due.day).isBefore(today);
   }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
     List<Map<String, dynamic>>  sortedList = [];
-
     list.forEach((snapshot) {
       sortedList.add(snapshot.data);
     });
