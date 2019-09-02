@@ -421,9 +421,10 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   Widget _buildListItem(BuildContext context, dynamic data) {
-    final record = OnegaiResponse.fromMap(data);
+    final _onegai = OnegaiResponse.fromMap(data);
+
     return Padding(
-      key: ValueKey(record.content),
+      key: ValueKey(_onegai.content),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
@@ -431,18 +432,21 @@ class _MyHomePageState extends State<MyHomePage>
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: LabeledCheckbox(
-          onTap:(){Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => OnegaiCreator()),
-          );},
-          label: record.content,
-          subtitle: formatter.format(record.dueDate),
+          onTap:(){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OnegaiCreator()),
+            );
+          },
+          label: _onegai.content,
+          subtitle: formatter.format(_onegai.dueDate),
           padding:EdgeInsets.all(10.0),
-          value: record.status,
+          value: _onegai.status,
+          isOver: isOver(_onegai.dueDate),
           onChanged: (bool newValue) {
             Timer(Duration(milliseconds: 500), () {
               setState(() {
-                _onegaiReference.document(record.onegaiId).delete().then((value) {
+                _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
                   print("deleted");
                 }).catchError((error) {
                   print(error);
@@ -453,6 +457,10 @@ class _MyHomePageState extends State<MyHomePage>
         ),
       ),
     );
+  }
+
+  bool isOver(DateTime due) {
+    return due.millisecondsSinceEpoch < Timestamp.now().millisecondsSinceEpoch;
   }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
@@ -480,6 +488,7 @@ class LabeledCheckbox extends StatelessWidget {
     this.onChanged,
     this.padding,
     this.onTap,
+    this.isOver
   });
 
   final String label;
@@ -488,11 +497,12 @@ class LabeledCheckbox extends StatelessWidget {
   final Function onChanged;
   final EdgeInsets padding;
   final Function onTap;
+  final bool isOver;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:padding,
+      padding: padding,
       child: Row(
         children: <Widget>[
           Expanded(
@@ -501,18 +511,21 @@ class LabeledCheckbox extends StatelessWidget {
 //                context,
 //                MaterialPageRoute(builder: (context) => OnegaiCreator()),
 //              );},
-            child:Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
                   label,
-                  style:TextStyle(fontSize: 25.0)
+                  style: TextStyle(fontSize: 25.0, color: isOver? constants.violet : Colors.black)
                 ),
                 Row(
                   children: <Widget>[
                     Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
                     SizedBox(width: 5,),
-                    Text(subtitle),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: isOver? Colors.red : Colors.black)
+                    )
                   ],
                 )
               ]
