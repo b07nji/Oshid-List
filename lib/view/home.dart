@@ -26,8 +26,6 @@ final qr = QRUtils();
 final formatter = DateFormat('M/d E', "ja");
 final constants = Constants();
 var partnerName = 'パートナーがいません';
-bool status = false;
-
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -443,8 +441,8 @@ class _MyHomePageState extends State<MyHomePage>
           padding:EdgeInsets.all(10.0),
           value: record.status,
           onChanged: (bool newValue) {
-            record.status = newValue;
             setState(() {
+              record.status = newValue;
               Timer(Duration(milliseconds: 600), () {
                 _onegaiReference.document(record.onegaiId).delete().then((value) {
                   print("deleted");
@@ -519,7 +517,7 @@ class LabeledCheckbox extends StatelessWidget {
                     SizedBox(width: 5,),
                     Text(subtitle),
                   ],
-                )
+                ),
               ]
              ),
             ),
@@ -540,7 +538,7 @@ class Record {
   final String onegaiId;
   final String content;
   final DateTime dueDate;
-  bool status = false;
+  bool status = true;
   final DocumentReference reference;
 
   Record.fromMap(Map<String, dynamic> map, {this.reference}) :
