@@ -14,7 +14,6 @@ import 'package:http/http.dart' as http;
 
 import '../constants.dart';
 import 'onegaiPage.dart';
-import 'pointPage.dart';
 
 import "package:intl/intl.dart";
 
@@ -50,54 +49,52 @@ class _MyHomePageState extends State<MyHomePage>
     )
   ];
   TabController _tabController;
-  SharedPreferences preferences;
 
+  //TODO: 別クラスにまとめて別ページでも同じ処理できるようにする
+  void initializer(SharedPreferences pref) async {
+    user.uuid = pref.getString(constants.uuid);
+    user.userName = pref.getString(constants.userName);
+    user.hasPartner = pref.getBool(constants.hasPartner);
+    user.partnerId = pref.getString(constants.partnerId);
+    if (user.hasPartner) partnerName = pref.getString(constants.partnerName);
+
+    //FCM設定
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+        _buildPushDialog(context, message);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        _buildPushDialog(context, message);
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        _buildPushDialog(context, message);
+      },
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings) {
+      print("Settings registered: $settings");
+    });
+    _firebaseMessaging.getToken().then((String token) {
+      assert(token != null);
+      print("Push Messaging token: $token");
+    });
+    _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+  }
 
   ///起動時に呼ばれる
   @override
   void initState() {
     super.initState();
     SharedPreferences.getInstance().then((SharedPreferences pref) {
-      preferences = pref;
       setState(() {
-        user.uuid = preferences.getString(constants.uuid);
-        user.userName = preferences.getString(constants.userName);
-        user.hasPartner = preferences.getBool(constants.hasPartner);
-        user.partnerId = preferences.getString(constants.partnerId);
-        if (user.hasPartner) partnerName = preferences.getString(constants.partnerName);
-        print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
-
-        //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
-
-        //FCM設定
-        _firebaseMessaging.configure(
-          onMessage: (Map<String, dynamic> message) async {
-            print("onMessage: $message");
-            _buildPushDialog(context, message);
-          },
-          onLaunch: (Map<String, dynamic> message) async {
-            print("onLaunch: $message");
-            _buildPushDialog(context, message);
-          },
-          onResume: (Map<String, dynamic> message) async {
-            print("onResume: $message");
-            _buildPushDialog(context, message);
-          },
-        );
-        _firebaseMessaging.requestNotificationPermissions(
-          const IosNotificationSettings(sound: true, badge: true, alert: true));
-        _firebaseMessaging.onIosSettingsRegistered
-          .listen((IosNotificationSettings settings) {
-          print("Settings registered: $settings");
-        });
-        _firebaseMessaging.getToken().then((String token) {
-          assert(token != null);
-          print("Push Messaging token: $token");
-        });
-        _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+        initializer(pref);
       });
     });
-
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
 
@@ -156,11 +153,9 @@ class _MyHomePageState extends State<MyHomePage>
 
       auth.saveHasPartnerFlag(data[constants.hasPartner]);
       user.hasPartner = data[constants.hasPartner];
-      print('tttttttttttttttttttttest' + user.hasPartner.toString());
 
       auth.savePartnerId(data[constants.partnerId]);
       user.partnerId = data[constants.partnerId];
-      print('tttttttttttttttttttttest' + user.partnerId);
 
       _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
         Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
@@ -168,7 +163,6 @@ class _MyHomePageState extends State<MyHomePage>
         setState(() {
           partnerName = data[constants.userName];
         });
-        print('tttttttttttttttttttttttttttest' + partnerName);
       });
     });
   }
@@ -242,6 +236,7 @@ class _MyHomePageState extends State<MyHomePage>
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
                   child:Text(user.userName + 'のQRコード'),
+
                 ),
             ),
             Center(
