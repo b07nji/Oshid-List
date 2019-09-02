@@ -41,7 +41,7 @@ class OnegaiForm extends StatefulWidget {
 
 class OnegaiFormState extends State<OnegaiForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final _onegai = Onegai();
+  final _onegai = OnegaiRequest();
   // 日付の表示変換
   final formatter = DateFormat('M/d E', "ja");
   var _radVal = Status.Mine;
@@ -55,100 +55,8 @@ class OnegaiFormState extends State<OnegaiForm> {
     SharedPreferences.getInstance().then((SharedPreferences pref) {
       preferences = pref;
       setState(() {
-        user.hasPartner = preferences.getBool(constants.hasPartner);
-        if (user.hasPartner) {
-          _radVal = Status.Yours;
-          auth.getPartnerName().then((value) {
-            partnerName = value;
-          });
-        }
-        user.uuid = preferences.getString(constants.uuid);
-        user.userName = preferences.getString(constants.userName);
-        user.partnerId = preferences.getString(constants.partnerId);
+        initUserInfo();
       });
-    });
-  }
-
-  Future _selectDate() async {
-    DateTime picked = await showDatePicker(
-      locale: Locale("ja"),
-      context: context,
-      initialDate: new DateTime.now(),
-      firstDate: DateTime(1994),
-      lastDate: DateTime(2025)
-    );
-    if (picked != null) {
-      setState(() => _onegai.dueDate = picked);
-    }
-  }
-
-  void _buildNoPartnerDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: ListTile(
-          title: Text('パートナーと繋がってね'),
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: Text('OK'),
-            onPressed: () => Navigator.of(context).pop(),
-          )
-        ],
-      )
-    );
-  }
-
-  void _onChanged(value) {
-    setState(() {
-      switch (_radVal) {
-        case Status.Mine:
-          if (user.hasPartner) {
-            _radVal = value;
-            user.uuid = preferences.getString(constants.uuid);
-          } else {
-            _buildNoPartnerDialog(context);
-          }
-
-          break;
-        case Status.Yours:
-          //パートナーが自分と繋がっているか
-          _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
-              _buildNoPartnerDialog(context);
-            }
-          });
-
-          //自分がパートナーと繋がっているか
-          if (user.hasPartner) {
-            _radVal = value;
-            user.partnerId = preferences.getString(constants.partnerId);
-
-          } else {
-            _buildNoPartnerDialog(context);
-          }
-          break;
-        case Status.Together:
-           //パートナーが自分と繋がっているか
-          _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
-              _buildNoPartnerDialog(context);
-            }
-          });
-
-          //自分がパートナーと繋がっているか
-          if (user.hasPartner) {
-            _radVal = value;
-            user.uuid = preferences.getString(constants.uuid);
-            user.partnerId = preferences.getString(constants.partnerId);
-
-          } else {
-            _buildNoPartnerDialog(context);
-          }
-          break;
-      }
     });
   }
 
@@ -314,5 +222,101 @@ class OnegaiFormState extends State<OnegaiForm> {
         ),
       ),
     );
+  }
+
+  void initUserInfo() {
+    user.hasPartner = preferences.getBool(constants.hasPartner);
+    if (user.hasPartner) {
+      _radVal = Status.Yours;
+      auth.getPartnerName().then((value) {
+        partnerName = value;
+      });
+    }
+    user.uuid = preferences.getString(constants.uuid);
+    user.userName = preferences.getString(constants.userName);
+    user.partnerId = preferences.getString(constants.partnerId);
+  }
+
+  Future _selectDate() async {
+    DateTime picked = await showDatePicker(
+        locale: Locale("ja"),
+        context: context,
+        initialDate: new DateTime.now(),
+        firstDate: DateTime(1994),
+        lastDate: DateTime(2025)
+    );
+    if (picked != null) {
+      setState(() => _onegai.dueDate = picked);
+    }
+  }
+
+  void _buildNoPartnerDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text('パートナーと繋がってね'),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          ],
+        )
+    );
+  }
+
+  void _onChanged(value) {
+    setState(() {
+      switch (_radVal) {
+        case Status.Mine:
+          if (user.hasPartner) {
+            _radVal = value;
+            user.uuid = preferences.getString(constants.uuid);
+          } else {
+            _buildNoPartnerDialog(context);
+          }
+
+          break;
+        case Status.Yours:
+        //パートナーが自分と繋がっているか
+          _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
+              _buildNoPartnerDialog(context);
+            }
+          });
+
+          //自分がパートナーと繋がっているか
+          if (user.hasPartner) {
+            _radVal = value;
+            user.partnerId = preferences.getString(constants.partnerId);
+
+          } else {
+            _buildNoPartnerDialog(context);
+          }
+          break;
+        case Status.Together:
+        //パートナーが自分と繋がっているか
+          _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
+              _buildNoPartnerDialog(context);
+            }
+          });
+
+          //自分がパートナーと繋がっているか
+          if (user.hasPartner) {
+            _radVal = value;
+            user.uuid = preferences.getString(constants.uuid);
+            user.partnerId = preferences.getString(constants.partnerId);
+
+          } else {
+            _buildNoPartnerDialog(context);
+          }
+          break;
+      }
+    });
   }
 }
