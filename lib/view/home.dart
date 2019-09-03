@@ -192,35 +192,30 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                     /**
                      * TODO: パートナー名取得
                      */
-                    var count = 0;
                     _userReference.document(partnerId).snapshots().forEach((snapshots) {
                       if (!snapshots.exists) {
-                        if (count == 1) return null;
                         showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              actions: <Widget>[
-                                FlatButton(
-                                  child: Text('パートナーのQRコードを読み込んでね'),
-                                  onPressed: () {
-                                    //push通知
-                                    postQrScannedNotification();
-                                    //更新した自分のパートナー情報をアプリに反映
-                                    fetchChangedUserInfo();
-                                    //ダイアログ閉じる
-                                    Navigator.pop(context, false);
-                                  }
-                                ),
-                              ],
-                            );
-                          }
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                actions: <Widget>[
+                                  FlatButton(
+                                      child: Text('パートナーのQRコードを読み込んでね'),
+                                      onPressed: () {
+                                        //push通知
+                                        postQrScannedNotification();
+                                        //更新した自分のパートナー情報をアプリに反映
+                                        fetchChangedUserInfo();
+                                        //ダイアログ閉じる
+                                        Navigator.pop(context, false);
+                                      }
+                                  ),
+                                ],
+                              );
+                            }
                         );
-                        return null;
                       }
-
-                      count++;
 
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
                       store.savePartnerName(data[constants.userName]);
