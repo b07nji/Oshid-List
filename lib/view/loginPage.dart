@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: <Widget>[
                     const SizedBox(height: 24.0),
                     TextFormField(
-                      cursorColor:Colors.grey,
+                      cursorColor:Colors.deepPurpleAccent,
                       decoration: const InputDecoration(
                         border: const UnderlineInputBorder(),
                         labelText: 'ニックネーム',

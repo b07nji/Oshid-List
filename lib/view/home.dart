@@ -433,15 +433,25 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
         if (sortByDate(snapshot.data.documents) == null) return Center(
-          child: Container(
-            child: Text(
-              tab.key == Key('0') ? 'お願いをいれてね' : '何か手伝うよ〜',
-              style: TextStyle(
-                color: constants.ivyGrey,
-                fontSize: 20
+          child: hasPartner ?
+            Container(
+              child: Text(
+                tab.key == Key('0') ? 'お願いをいれてね' : '何か手伝うよ〜',
+                style: TextStyle(
+                  color: constants.ivyGrey,
+                  fontSize: 20
+                ),
               ),
-            ),
-          ),
+            ) :
+            Container (
+              child: Text(
+                'パートナーと繋がってね',
+                style: TextStyle(
+                    color: constants.ivyGrey,
+                    fontSize: 20
+                ),
+              ),
+            )
         );
         return _buildList(context, sortByDate(snapshot.data.documents), tab.key);
       },
