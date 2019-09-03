@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
                         labelText: 'ニックネーム',
                         labelStyle: TextStyle(color: Color.fromRGBO(102, 108, 103, 1)),
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                          borderSide: BorderSide(color: Colors.deepPurpleAccent),
                         ),
                         focusedBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.deepPurpleAccent),

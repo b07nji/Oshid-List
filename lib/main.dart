@@ -40,7 +40,6 @@ class _MyAppState extends State<MyApp> {
       if (user.uuid != null) {
         _defaultHome = MyHomePage();
       }
-      print("this is uuid: " + user.uuid);
     });
   }
 
