@@ -45,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage>
     Tab(
       key: Key('0'),
       text: constants.me,
-        ),
+    ),
     Tab(
       key: Key('1'),
       text: constants.partner,
@@ -149,13 +149,13 @@ class _MyHomePageState extends State<MyHomePage>
             ),
 
             Center(
-              child: Text(partnerName),
+              child: Text(partnerName, style: TextStyle(color: constants.ivyGrey),),
             ),
 
             Center(
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
-                  child:Text('$userNameのQRコード'),
+                  child:Text('$userNameのQRコード', style: TextStyle(color: constants.ivyGrey),),
 
                 ),
             ),
@@ -164,7 +164,8 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             Center(
               child: RaisedButton(
-                child: Text('パートナーと繋がる'),
+                color: constants.violet,
+                child: Text('パートナーと繋がる', style: TextStyle(color: Colors.white),),
                 onPressed: () {
                   qr.readQr().then((partnerId) {
                     if (partnerId.isEmpty || partnerId == null) {
@@ -297,6 +298,7 @@ class _MyHomePageState extends State<MyHomePage>
       //タブ生成
       bottomNavigationBar: TabBar(
         tabs: tabs,
+        labelStyle: TextStyle(color: constants.ivyGrey),
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
         indicatorColor: constants.violet,
@@ -550,7 +552,7 @@ class LabeledCheckbox extends StatelessWidget {
               children: <Widget>[
                 Text(
                   label,
-                  style: TextStyle(fontSize: 25.0, color: isOver? constants.violet : Colors.black)
+                  style: TextStyle(fontSize: 25.0, color: isOver? constants.violet : constants.ivyGrey)
                 ),
                 Row(
                   children: <Widget>[
@@ -558,7 +560,7 @@ class LabeledCheckbox extends StatelessWidget {
                     SizedBox(width: 5,),
                     Text(
                       subtitle,
-                      style: TextStyle(color: isOver? Colors.red : Colors.black)
+                      style: TextStyle(color: isOver? Colors.red : constants.ivyGrey)
                     )
                   ],
                 )

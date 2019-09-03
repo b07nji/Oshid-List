@@ -15,7 +15,8 @@ class Constants {
   //色
   final violet = Color.fromRGBO(207, 167, 205, 1);
   final grey = Color.fromRGBO(229, 229, 229, 1);
-//  final floatingButton = Color.fromRGBO(248, 248, 255, 1);
+  final ivyGrey = Color.fromRGBO(102, 108, 103, 1);
+  final darkGold = Color.fromRGBO(108, 93, 83, 1);
   final floatingButton = Color.fromRGBO(230, 230, 250, 1);
 
   //FCM

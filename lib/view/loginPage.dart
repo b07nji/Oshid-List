@@ -8,7 +8,6 @@ import '../constants.dart';
 
 final auth = Authentication();
 final user = User();
-final constants = Constants();
 final _userReference = Firestore.instance.collection(constants.users);
 
 class LoginPage extends StatefulWidget {
@@ -50,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: const InputDecoration(
                         border: const UnderlineInputBorder(),
                         labelText: 'ニックネーム',
-                        labelStyle: TextStyle(color: Colors.black),
+                        labelStyle: TextStyle(color: Color.fromRGBO(102, 108, 103, 1)),
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey),
                         ),
@@ -71,7 +70,8 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 24.0),
                     Center(
                       child: RaisedButton(
-                        child: const Text('登録する'),
+                        color: constants.violet,
+                        child: const Text('登録する', style: TextStyle(color: Colors.white),),
                         onPressed: () {
                           // TODO: ログイン処理
                           //1. generate uuid
