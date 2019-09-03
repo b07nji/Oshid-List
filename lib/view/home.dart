@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
-import 'package:oshid_list_v1/model/auth/authentication.dart';
+import 'package:oshid_list_v1/model/store.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
@@ -20,7 +20,7 @@ final _onegaiReference = Firestore.instance.collection(constants.onegai);
 final _userReference = Firestore.instance.collection(constants.users);
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-final auth = Authentication();
+final store = Store();
 final user = User();
 final qr = QRUtils();
 final formatter = DateFormat('M/d E', "ja");
@@ -31,20 +31,18 @@ var hasPartner = false;
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   // 以下をStateの中に記述
 
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
       text: constants.me,
-        ),
+    ),
     Tab(
       key: Key('1'),
       text: constants.partner,
@@ -130,31 +128,31 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             SizedBox(width: 5.0),
             Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    width: hasPartner ? 20 : 0,
-                    height: hasPartner ? 20 : 0,
-                    child: hasPartner ? Image.asset(constants.oshidoriBlue) : null,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: hasPartner ? 20 : 0,
+                  height: hasPartner ? 20 : 0,
+                  child: hasPartner ? Image.asset(constants.oshidoriBlue) : null,
+                ),
+                SizedBox(width: hasPartner ? 10.0 : 0),
+                Container(
+                  width: 20,
+                  height: 20,
+                  child: Image.asset(constants.oshidoriGreen),
                   ),
-                  SizedBox(width: hasPartner ? 10.0 : 0),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    child: Image.asset(constants.oshidoriGreen),
-                    ),
-                ],
-              ),
+              ],
+            ),
 
             Center(
-              child: Text(partnerName),
+              child: Text(partnerName, style: TextStyle(color: constants.ivyGrey),),
             ),
 
             Center(
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
-                  child:Text('$userNameのQRコード'),
+                  child:Text('$userNameのQRコード', style: TextStyle(color: constants.ivyGrey),),
 
                 ),
             ),
@@ -163,7 +161,8 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             Center(
               child: RaisedButton(
-                child: Text('パートナーと繋がる'),
+                color: constants.violet,
+                child: Text('パートナーと繋がる', style: TextStyle(color: Colors.white),),
                 onPressed: () {
                   qr.readQr().then((partnerId) {
                     if (partnerId.isEmpty || partnerId == null) {
@@ -193,8 +192,10 @@ class _MyHomePageState extends State<MyHomePage>
                     /**
                      * TODO: パートナー名取得
                      */
+                    var count = 0;
                     _userReference.document(partnerId).snapshots().forEach((snapshots) {
                       if (!snapshots.exists) {
+                        if (count == 1) return null;
                         showDialog(
                           barrierDismissible: false,
                           context: context,
@@ -219,8 +220,10 @@ class _MyHomePageState extends State<MyHomePage>
                         return null;
                       }
 
+                      count++;
+
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-                      auth.savePartnerName(data[constants.userName]);
+                      store.savePartnerName(data[constants.userName]);
 
                       //TODO: リファクタ
                       //自分のパートナー情報更新
@@ -248,8 +251,8 @@ class _MyHomePageState extends State<MyHomePage>
                                         /**
                                          *  TODO: パートナーIDをローカルストレージ保存
                                          */
-                                        auth.saveHasPartnerFlag(true);
-                                        auth.savePartnerId(partnerId);
+                                        store.saveHasPartnerFlag(true);
+                                        store.savePartnerId(partnerId);
                                         user.hasPartner = true;
                                         user.partnerId = partnerId;
                                         hasPartner = true;
@@ -292,6 +295,7 @@ class _MyHomePageState extends State<MyHomePage>
       //タブ生成
       bottomNavigationBar: TabBar(
         tabs: tabs,
+        labelStyle: TextStyle(color: constants.ivyGrey),
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
 //        indicatorColor: constants.violet,
@@ -346,12 +350,37 @@ class _MyHomePageState extends State<MyHomePage>
     _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
   }
 
-  void postQrScannedNotification() async {
+  void sendCompleteNotification(String onegai) async {
     var serverKey = constants.serverKey;
-
     final notification = {
       "to": "/topics/" + user.partnerId,
-      "notification": {"title": user.userName + "さんと繋がりました！"},
+      "notification": {"title": "$userNameが$onegaiを完了しました！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
+  }
+
+  void postQrScannedNotification() async {
+    var serverKey = constants.serverKey;
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": "$userNameさんと繋がりました！"},
       "priority": 10,
     };
 
@@ -377,15 +406,15 @@ class _MyHomePageState extends State<MyHomePage>
     _userReference.document(user.uuid).snapshots().forEach((snapshots) {
       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
 
-      auth.saveHasPartnerFlag(data[constants.hasPartner]);
+      store.saveHasPartnerFlag(data[constants.hasPartner]);
       user.hasPartner = data[constants.hasPartner];
 
-      auth.savePartnerId(data[constants.partnerId]);
+      store.savePartnerId(data[constants.partnerId]);
       user.partnerId = data[constants.partnerId];
 
       _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
         Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-        auth.savePartnerName(data[constants.userName]);
+        store.savePartnerName(data[constants.userName]);
         setState(() {
           hasPartner = true;
           partnerName = data[constants.userName];
@@ -395,31 +424,47 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   Widget _createTab(Tab tab, BuildContext context) {
-    var uuid;
-    if (tab.key == Key('0')) {
-      uuid = user.uuid;
-      print(uuid);
-    } else {
-      uuid = user.partnerId;
-      print(uuid);
-    }
     return StreamBuilder<QuerySnapshot> (
-      stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
+      stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(
+        tab.key == Key('0') ? user.uuid : user.partnerId
+      )).snapshots(),
+
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
-        return _buildList(context, sortByDate(snapshot.data.documents));
+        if (sortByDate(snapshot.data.documents) == null) return Center(
+          child: hasPartner ?
+            Container(
+              child: Text(
+                tab.key == Key('0') ? 'お願いをいれてね' : '何か手伝うよ〜',
+                style: TextStyle(
+                  color: constants.ivyGrey,
+                  fontSize: 20
+                ),
+              ),
+            ) :
+            Container (
+              child: Text(
+                'パートナーと繋がってね',
+                style: TextStyle(
+                    color: constants.ivyGrey,
+                    fontSize: 20
+                ),
+              ),
+            )
+        );
+        return _buildList(context, sortByDate(snapshot.data.documents), tab.key);
       },
     );
   }
 
-  Widget _buildList(BuildContext context, List<dynamic> sortedList) {
+  Widget _buildList(BuildContext context, List<dynamic> sortedList, Key key) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: sortedList.map((data) => _buildListItem(context,data)).toList(),
+      children: sortedList.map((data) => _buildListItem(context,data, key)).toList(),
     );
   }
 
-  Widget _buildListItem(BuildContext context, dynamic data) {
+  Widget _buildListItem(BuildContext context, dynamic data, Key key) {
     final _onegai = OnegaiResponse.fromMap(data);
 
     return Padding(
@@ -447,6 +492,11 @@ class _MyHomePageState extends State<MyHomePage>
               setState(() {
                 _onegai.status = newValue;
                 _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
+                  //TODO: push通知
+                  print(_onegai.reference);
+
+                  if (key == Key('0')) sendCompleteNotification(_onegai.content);
+
                   print("deleted");
                 }).catchError((error) {
                   print(error);
@@ -460,12 +510,13 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   bool isOver(DateTime due) {
-    return due.millisecondsSinceEpoch < Timestamp.now().millisecondsSinceEpoch;
+    DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return DateTime(due.year, due.month, due.day).isBefore(today);
   }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
+    if (list.isEmpty) return null;
     List<Map<String, dynamic>>  sortedList = [];
-
     list.forEach((snapshot) {
       sortedList.add(snapshot.data);
     });
@@ -516,7 +567,7 @@ class LabeledCheckbox extends StatelessWidget {
               children: <Widget>[
                 Text(
                   label,
-                  style: TextStyle(fontSize: 25.0, color: isOver? constants.violet : Colors.black)
+                  style: TextStyle(fontSize: 25.0, color: isOver? constants.violet : constants.ivyGrey)
                 ),
                 Row(
                   children: <Widget>[
@@ -524,7 +575,7 @@ class LabeledCheckbox extends StatelessWidget {
                     SizedBox(width: 5,),
                     Text(
                       subtitle,
-                      style: TextStyle(color: isOver? Colors.red : Colors.black)
+                      style: TextStyle(color: isOver? Colors.red : constants.ivyGrey)
                     )
                   ],
                 ),

@@ -1,21 +1,25 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
-import 'package:oshid_list_v1/model/auth/authentication.dart';
+import 'package:oshid_list_v1/model/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import "package:intl/intl.dart";
+import 'dart:convert' show json;
+import 'package:http/http.dart' as http;
 
 import '../constants.dart';
 
 final _onegaiReference = Firestore.instance.collection(constants.onegai);
 final _userReference = Firestore.instance.collection(constants.users);
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 final user = User();
-final auth = Authentication();
+final store = Store();
 final constants = Constants();
-
+var userName = 'user';
 var partnerName = 'パートナー';
 
 class OnegaiCreator extends StatelessWidget {
@@ -23,8 +27,8 @@ class OnegaiCreator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: constants.violet),
-        title: Text('おねがいする', style: TextStyle(color: constants.violet),),
+        iconTheme: IconThemeData(color: constants.darkGold),
+        title: Text('おねがいする', style: TextStyle(color: constants.darkGold),),
 //        backgroundColor: Colors.white,
       ),
       body: Center(
@@ -56,6 +60,7 @@ class OnegaiFormState extends State<OnegaiForm> {
       preferences = pref;
       setState(() {
         initUserInfo();
+        initFCM();
       });
     });
   }
@@ -73,7 +78,7 @@ class OnegaiFormState extends State<OnegaiForm> {
             SizedBox(height: 20),
 
             TextFormField(
-              cursorColor:Colors.grey,
+              cursorColor: Colors.deepPurpleAccent,
               validator: (value) {
                 if (value.isEmpty) return "おねがいを入れてね";
                 return null;
@@ -81,9 +86,10 @@ class OnegaiFormState extends State<OnegaiForm> {
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
                 labelText: 'おねがい',
-                labelStyle: TextStyle(color: Colors.black),
+                labelStyle: TextStyle(color: constants.ivyGrey),
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),),
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
                 focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.deepPurpleAccent),),
                 ),
@@ -92,24 +98,24 @@ class OnegaiFormState extends State<OnegaiForm> {
 
             SizedBox(height: 10),
 
-            Text('誰に?'),
+            Text('誰に?', style: TextStyle(color: constants.ivyGrey),),
             Center(
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                    title: Text(partnerName),
+                    title: Text(partnerName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Yours,
                     groupValue: _radVal,
 //                    activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
-                    title: Text('ふたりで'),
+                    title: Text('ふたりで', style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Together,
                     groupValue: _radVal,
 //                    activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
-                    title: Text(user.userName),
+                    title: Text(user.userName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Mine,
                     groupValue: _radVal,
 //                    activeColor: constants.violet,
@@ -120,7 +126,7 @@ class OnegaiFormState extends State<OnegaiForm> {
 
             SizedBox(height: 10),
 
-            Text('いつまでに?'),
+            Text('いつまでに?', style: TextStyle(color: constants.ivyGrey),),
             SizedBox(
               width: 150,
               child: RaisedButton.icon(
@@ -186,6 +192,7 @@ class OnegaiFormState extends State<OnegaiForm> {
                               'onegaiId': docRef.documentID
                             }
                         );
+                        postAddOnegaiNotification(_onegai.content);
                         Navigator.of(context).pop('/home');
                       });
                       // ふたりで
@@ -206,9 +213,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                           );
                         });
                       });
-                      /**
-                       * TODO:[refactor]値の初期化
-                       */
+
+                      postAddOnegaiNotification(_onegai.content);
                       Timer(Duration(milliseconds: 1000), () {
                         Navigator.of(context).pop('/home');
 
@@ -228,12 +234,13 @@ class OnegaiFormState extends State<OnegaiForm> {
     user.hasPartner = preferences.getBool(constants.hasPartner);
     if (user.hasPartner) {
       _radVal = Status.Yours;
-      auth.getPartnerName().then((value) {
+      store.getPartnerName().then((value) {
         partnerName = value;
       });
     }
     user.uuid = preferences.getString(constants.uuid);
     user.userName = preferences.getString(constants.userName);
+    userName = user.userName;
     user.partnerId = preferences.getString(constants.partnerId);
   }
 
@@ -265,6 +272,81 @@ class OnegaiFormState extends State<OnegaiForm> {
           ],
         )
     );
+  }
+
+  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text(message['notification']['title']),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        )
+    );
+  }
+
+  void initFCM() {
+    //FCM設定
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+        _buildPushDialog(context, message);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        _buildPushDialog(context, message);
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        _buildPushDialog(context, message);
+      },
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings) {
+      print("Settings registered: $settings");
+    });
+    _firebaseMessaging.getToken().then((String token) {
+      assert(token != null);
+      print("Push Messaging token: $token");
+    });
+    _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+  }
+
+  void postAddOnegaiNotification(String onegai) async {
+    var serverKey = constants.serverKey;
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": "$userNameが$onegaiをお願いしました"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
   }
 
   void _onChanged(value) {
