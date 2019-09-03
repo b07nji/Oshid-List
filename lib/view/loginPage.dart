@@ -4,6 +4,7 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/store.dart';
 import 'package:uuid/uuid.dart';
 
+
 final store = Store();
 final user = User();
 final _userReference = Firestore.instance.collection(constants.users);
@@ -12,13 +13,11 @@ class LoginPage extends StatefulWidget {
 
   @override
   _LoginPageState createState() => _LoginPageState();
-
 }
 
 class _LoginPageState extends State<LoginPage> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-//  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +92,11 @@ class _LoginPageState extends State<LoginPage> {
                                 'partnerId': user.partnerId
                               }
                           ).whenComplete(() {
+                            //3. add to preference. if no sentence below here, can't relate user with onegai
+                            auth.saveUserInfo(user.uuid, user.userName);
+                            auth.saveHasPartnerFlag(user.hasPartner);
+                            auth.savePartnerId(user.partnerId);
+
                             Navigator.of(context).pushReplacementNamed('/home');
                           });
                           //3. add to preference. if no sentence below here, can't relate user with onegai

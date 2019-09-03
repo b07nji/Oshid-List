@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert' show json;
+import 'package:http/http.dart' as http;
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,12 +12,8 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/store.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert' show json;
-import 'package:http/http.dart' as http;
-
 import '../constants.dart';
 import 'onegaiPage.dart';
-
 import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection(constants.onegai);
@@ -39,6 +37,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   // 以下をStateの中に記述
+
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
@@ -96,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           width: 200,
           child: Image.asset(constants.flag),
         ),
-        backgroundColor: Colors.white,
+//        backgroundColor: Colors.white,
       ),
       body: TabBarView(
         controller: _tabController,
@@ -112,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               height: 90,
               child: DrawerHeader(
                 decoration: BoxDecoration(
-                    color: Colors.white
+//                    color: Colors.white
                 ),
               ),
             ),
@@ -299,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         labelStyle: TextStyle(color: constants.ivyGrey),
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
-        indicatorColor: constants.violet,
+//        indicatorColor: constants.violet,
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
@@ -491,6 +490,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           onChanged: (bool newValue) {
             Timer(Duration(milliseconds: 500), () {
               setState(() {
+                _onegai.status = newValue;
                 _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
                   //TODO: push通知
                   print(_onegai.reference);
@@ -578,7 +578,7 @@ class LabeledCheckbox extends StatelessWidget {
                       style: TextStyle(color: isOver? Colors.red : constants.ivyGrey)
                     )
                   ],
-                )
+                ),
               ]
              ),
             ),

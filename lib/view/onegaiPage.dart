@@ -29,7 +29,7 @@ class OnegaiCreator extends StatelessWidget {
       appBar: AppBar(
         iconTheme: IconThemeData(color: constants.darkGold),
         title: Text('おねがいする', style: TextStyle(color: constants.darkGold),),
-        backgroundColor: Colors.white,
+//        backgroundColor: Colors.white,
       ),
       body: Center(
         child: OnegaiForm(),
@@ -106,19 +106,19 @@ class OnegaiFormState extends State<OnegaiForm> {
                     title: Text(partnerName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Yours,
                     groupValue: _radVal,
-                    activeColor: constants.violet,
+//                    activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
                     title: Text('ふたりで', style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Together,
                     groupValue: _radVal,
-                    activeColor: constants.violet,
+//                    activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
                     title: Text(user.userName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Mine,
                     groupValue: _radVal,
-                    activeColor: constants.violet,
+//                    activeColor: constants.violet,
                     onChanged: _onChanged),
                 ],
               ),
@@ -207,9 +207,9 @@ class OnegaiFormState extends State<OnegaiForm> {
                             }
                         ).then((docRef) {
                           _onegaiReference.document(docRef.documentID).updateData(
-                              {
-                                'onegaiId': docRef.documentID
-                              }
+                            {
+                              'onegaiId': docRef.documentID
+                            }
                           );
                         });
                       });
