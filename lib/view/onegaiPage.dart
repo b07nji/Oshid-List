@@ -23,8 +23,8 @@ class OnegaiCreator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: constants.violet),
-        title: Text('おねがいする', style: TextStyle(color: constants.violet),),
+        iconTheme: IconThemeData(color: constants.darkGold),
+        title: Text('おねがいする', style: TextStyle(color: constants.darkGold),),
         backgroundColor: Colors.white,
       ),
       body: Center(
@@ -81,7 +81,7 @@ class OnegaiFormState extends State<OnegaiForm> {
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
                 labelText: 'おねがい',
-                labelStyle: TextStyle(color: Colors.black),
+                labelStyle: TextStyle(color: constants.ivyGrey),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.grey),),
                 focusedBorder: UnderlineInputBorder(
@@ -92,24 +92,24 @@ class OnegaiFormState extends State<OnegaiForm> {
 
             SizedBox(height: 10),
 
-            Text('誰に?'),
+            Text('誰に?', style: TextStyle(color: constants.ivyGrey),),
             Center(
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                    title: Text(partnerName),
+                    title: Text(partnerName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Yours,
                     groupValue: _radVal,
                     activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
-                    title: Text('ふたりで'),
+                    title: Text('ふたりで', style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Together,
                     groupValue: _radVal,
                     activeColor: constants.violet,
                     onChanged: _onChanged),
                   RadioListTile(
-                    title: Text(user.userName),
+                    title: Text(user.userName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
                     value: Status.Mine,
                     groupValue: _radVal,
                     activeColor: constants.violet,
@@ -120,7 +120,7 @@ class OnegaiFormState extends State<OnegaiForm> {
 
             SizedBox(height: 10),
 
-            Text('いつまでに?'),
+            Text('いつまでに?', style: TextStyle(color: constants.ivyGrey),),
             SizedBox(
               width: 150,
               child: RaisedButton.icon(
