@@ -93,16 +93,12 @@ class _LoginPageState extends State<LoginPage> {
                               }
                           ).whenComplete(() {
                             //3. add to preference. if no sentence below here, can't relate user with onegai
-                            auth.saveUserInfo(user.uuid, user.userName);
-                            auth.saveHasPartnerFlag(user.hasPartner);
-                            auth.savePartnerId(user.partnerId);
+                            store.saveUserInfo(user.uuid, user.userName);
+                            store.saveHasPartnerFlag(user.hasPartner);
+                            store.savePartnerId(user.partnerId);
 
                             Navigator.of(context).pushReplacementNamed('/home');
                           });
-                          //3. add to preference. if no sentence below here, can't relate user with onegai
-                          store.saveUserInfo(user.uuid, user.userName);
-                          store.saveHasPartnerFlag(user.hasPartner);
-                          store.savePartnerId(user.partnerId);
                         },
                       ),
                     ),
@@ -111,7 +107,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-
       )
     );
   }
