@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:oshid_list_v1/entity/user.dart';
-import 'package:oshid_list_v1/model/auth/authentication.dart';
+import 'package:oshid_list_v1/model/store.dart';
 import 'package:uuid/uuid.dart';
 
-import '../constants.dart';
-
-final auth = Authentication();
+final store = Store();
 final user = User();
 final _userReference = Firestore.instance.collection(constants.users);
 
@@ -98,9 +96,9 @@ class _LoginPageState extends State<LoginPage> {
                             Navigator.of(context).pushReplacementNamed('/home');
                           });
                           //3. add to preference. if no sentence below here, can't relate user with onegai
-                          auth.saveUserInfo(user.uuid, user.userName);
-                          auth.saveHasPartnerFlag(user.hasPartner);
-                          auth.savePartnerId(user.partnerId);
+                          store.saveUserInfo(user.uuid, user.userName);
+                          store.saveHasPartnerFlag(user.hasPartner);
+                          store.savePartnerId(user.partnerId);
                         },
                       ),
                     ),
