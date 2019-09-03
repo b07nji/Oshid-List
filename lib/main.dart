@@ -24,7 +24,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-  Widget _defaultHome = MyHomePage();
+  Widget _defaultHome = LoginPage();
 
   SharedPreferences preferences;
 
@@ -37,9 +37,8 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         user.uuid = preferences.getString(constants.uuid);
       });
-
-      if (user.uuid == null) {
-        _defaultHome = LoginPage();
+      if (user.uuid != null) {
+        _defaultHome = MyHomePage();
       }
       print("this is uuid: " + user.uuid);
     });

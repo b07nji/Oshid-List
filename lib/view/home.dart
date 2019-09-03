@@ -1,20 +1,20 @@
 import 'dart:async';
 import 'dart:convert' show json;
+import 'package:http/http.dart' as http;
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:http/http.dart' as http;
-import "package:intl/intl.dart";
+import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/auth/authentication.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../constants.dart';
 import 'onegaiPage.dart';
+import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection(constants.onegai);
 final _userReference = Firestore.instance.collection(constants.users);
@@ -25,7 +25,9 @@ final user = User();
 final qr = QRUtils();
 final formatter = DateFormat('M/d E', "ja");
 final constants = Constants();
+var userName = 'user';
 var partnerName = 'パートナーがいません';
+var hasPartner = false;
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
@@ -49,54 +51,17 @@ class _MyHomePageState extends State<MyHomePage>
     )
   ];
   TabController _tabController;
-  SharedPreferences preferences;
-
 
   ///起動時に呼ばれる
   @override
   void initState() {
     super.initState();
     SharedPreferences.getInstance().then((SharedPreferences pref) {
-      preferences = pref;
       setState(() {
-        user.uuid = preferences.getString(constants.uuid);
-        user.userName = preferences.getString(constants.userName);
-        user.hasPartner = preferences.getBool(constants.hasPartner);
-        user.partnerId = preferences.getString(constants.partnerId);
-        if (user.hasPartner) partnerName = preferences.getString(constants.partnerName);
-        print("home initState() is called: uuid " + user.uuid + ", hasPartner: " + user.hasPartner.toString() + ", partnerId: " + user.partnerId);
-
-        //TODO:リファクタ partnerId取得のためここで初期化しているが気持ち悪い
-
-        //FCM設定
-        _firebaseMessaging.configure(
-          onMessage: (Map<String, dynamic> message) async {
-            print("onMessage: $message");
-            _buildPushDialog(context, message);
-          },
-          onLaunch: (Map<String, dynamic> message) async {
-            print("onLaunch: $message");
-            _buildPushDialog(context, message);
-          },
-          onResume: (Map<String, dynamic> message) async {
-            print("onResume: $message");
-            _buildPushDialog(context, message);
-          },
-        );
-        _firebaseMessaging.requestNotificationPermissions(
-          const IosNotificationSettings(sound: true, badge: true, alert: true));
-        _firebaseMessaging.onIosSettingsRegistered
-          .listen((IosNotificationSettings settings) {
-          print("Settings registered: $settings");
-        });
-        _firebaseMessaging.getToken().then((String token) {
-          assert(token != null);
-          print("Push Messaging token: $token");
-        });
-        _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+        initUserInfo(pref);
+        initFCM();
       });
     });
-
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
 
@@ -121,57 +86,6 @@ class _MyHomePageState extends State<MyHomePage>
       )
     );
   }
-
-  void postQrScannedNotification() async {
-    var serverKey = constants.serverKey;
-
-    final notification = {
-      "to": "/topics/" + user.partnerId,
-      "notification": {"title": user.userName + "さんと繋がりました！"},
-      "priority": 10,
-    };
-
-    final headers = {
-      'content-type': 'application/json',
-      'Authorization': 'key=$serverKey'
-    };
-
-    final response = await http.post(
-      constants.url,
-      body: json.encode(notification),
-      headers: headers,
-    );
-
-    if (response.statusCode == 200) {
-      print("pushed notification successfully");
-    } else {
-      print("failed push notification");
-    }
-  }
-
-  void fetchChangedUserInfo() {
-    _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-
-      auth.saveHasPartnerFlag(data[constants.hasPartner]);
-      user.hasPartner = data[constants.hasPartner];
-      print('tttttttttttttttttttttest' + user.hasPartner.toString());
-
-      auth.savePartnerId(data[constants.partnerId]);
-      user.partnerId = data[constants.partnerId];
-      print('tttttttttttttttttttttest' + user.partnerId);
-
-      _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
-        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-        auth.savePartnerName(data[constants.userName]);
-        setState(() {
-          partnerName = data[constants.userName];
-        });
-        print('tttttttttttttttttttttttttttest' + partnerName);
-      });
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             Container(
               child:Center(
-                child: Text(user.userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+                child: Text(userName, style: TextStyle(fontSize: 20, color: constants.violet),),
               ),
             ),
             SizedBox(width: 5.0),
@@ -220,11 +134,11 @@ class _MyHomePageState extends State<MyHomePage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    width: user.hasPartner ? 20 : 0,
-                    height: user.hasPartner ? 20 : 0,
-                    child: user.hasPartner ? Image.asset(constants.oshidoriBlue) : null,
+                    width: hasPartner ? 20 : 0,
+                    height: hasPartner ? 20 : 0,
+                    child: hasPartner ? Image.asset(constants.oshidoriBlue) : null,
                   ),
-                  SizedBox(width: user.hasPartner ? 10.0 : 0),
+                  SizedBox(width: hasPartner ? 10.0 : 0),
                   Container(
                     width: 20,
                     height: 20,
@@ -240,7 +154,8 @@ class _MyHomePageState extends State<MyHomePage>
             Center(
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
-                  child:Text(user.userName + 'のQRコード'),
+                  child:Text('$userNameのQRコード'),
+
                 ),
             ),
             Center(
@@ -251,7 +166,6 @@ class _MyHomePageState extends State<MyHomePage>
                 child: Text('パートナーと繋がる'),
                 onPressed: () {
                   qr.readQr().then((partnerId) {
-
                     if (partnerId.isEmpty || partnerId == null) {
                       showDialog(
                         barrierDismissible: false,
@@ -338,6 +252,7 @@ class _MyHomePageState extends State<MyHomePage>
                                         auth.savePartnerId(partnerId);
                                         user.hasPartner = true;
                                         user.partnerId = partnerId;
+                                        hasPartner = true;
                                         partnerName = data[constants.userName];
                                       });
                                       //push通知
@@ -391,10 +306,96 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
+  void initUserInfo(SharedPreferences pref) {
+    user.uuid = pref.getString(constants.uuid);
+    user.userName = pref.getString(constants.userName);
+    user.hasPartner = pref.getBool(constants.hasPartner);
+    user.partnerId = pref.getString(constants.partnerId);
+
+    userName = user.userName;
+    hasPartner = user.hasPartner;
+    if (user.hasPartner) partnerName = pref.getString(constants.partnerName);
+  }
+
+  void initFCM() {
+    //FCM設定
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+        _buildPushDialog(context, message);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        _buildPushDialog(context, message);
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        _buildPushDialog(context, message);
+      },
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings) {
+      print("Settings registered: $settings");
+    });
+    _firebaseMessaging.getToken().then((String token) {
+      assert(token != null);
+      print("Push Messaging token: $token");
+    });
+    _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+  }
+
+  void postQrScannedNotification() async {
+    var serverKey = constants.serverKey;
+
+    final notification = {
+      "to": "/topics/" + user.partnerId,
+      "notification": {"title": user.userName + "さんと繋がりました！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
+  }
+
+  void fetchChangedUserInfo() {
+    _userReference.document(user.uuid).snapshots().forEach((snapshots) {
+      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+
+      auth.saveHasPartnerFlag(data[constants.hasPartner]);
+      user.hasPartner = data[constants.hasPartner];
+
+      auth.savePartnerId(data[constants.partnerId]);
+      user.partnerId = data[constants.partnerId];
+
+      _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
+        Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
+        auth.savePartnerName(data[constants.userName]);
+        setState(() {
+          hasPartner = true;
+          partnerName = data[constants.userName];
+        });
+      });
+    });
+  }
+
   Widget _createTab(Tab tab, BuildContext context) {
-
     var uuid;
-
     if (tab.key == Key('0')) {
       uuid = user.uuid;
       print(uuid);
@@ -411,7 +412,6 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
-
   Widget _buildList(BuildContext context, List<dynamic> sortedList) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
@@ -420,9 +420,10 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   Widget _buildListItem(BuildContext context, dynamic data) {
-    final record = Record.fromMap(data);
+    final _onegai = OnegaiResponse.fromMap(data);
+
     return Padding(
-      key: ValueKey(record.content),
+      key: ValueKey(_onegai.content),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
@@ -430,21 +431,22 @@ class _MyHomePageState extends State<MyHomePage>
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: LabeledCheckbox(
-//          onTap:(value){
-//            Navigator.push(
-//              context,
-//              MaterialPageRoute(builder: (context) => OnegaiCreator()),
-//            );
-//          },
-          label: record.content,
-          subtitle: formatter.format(record.dueDate),
+          onTap:(){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OnegaiCreator()),
+            );
+          },
+          label: _onegai.content,
+          subtitle: formatter.format(_onegai.dueDate),
           padding:EdgeInsets.all(10.0),
-          value: record.status,
+          value: _onegai.status,
+          isOver: isOver(_onegai.dueDate),
           onChanged: (bool newValue) {
-            setState(() {
-              record.status = newValue;
-              Timer(Duration(milliseconds: 600), () {
-                _onegaiReference.document(record.onegaiId).delete().then((value) {
+            Timer(Duration(milliseconds: 500), () {
+              setState(() {
+                _onegai.status = newValue;
+                _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
                   print("deleted");
                 }).catchError((error) {
                   print(error);
@@ -457,6 +459,9 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
+  bool isOver(DateTime due) {
+    return due.millisecondsSinceEpoch < Timestamp.now().millisecondsSinceEpoch;
+  }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
     List<Map<String, dynamic>>  sortedList = [];
@@ -483,6 +488,7 @@ class LabeledCheckbox extends StatelessWidget {
     this.onChanged,
     this.padding,
     this.onTap,
+    this.isOver
   });
 
   final String label;
@@ -491,11 +497,12 @@ class LabeledCheckbox extends StatelessWidget {
   final Function onChanged;
   final EdgeInsets padding;
   final Function onTap;
+  final bool isOver;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:padding,
+      padding: padding,
       child: Row(
         children: <Widget>[
           Expanded(
@@ -504,18 +511,21 @@ class LabeledCheckbox extends StatelessWidget {
 //                context,
 //                MaterialPageRoute(builder: (context) => OnegaiCreator()),
 //              );},
-            child:Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
                   label,
-                  style:TextStyle(fontSize: 25.0)
+                  style: TextStyle(fontSize: 25.0, color: isOver? constants.violet : Colors.black)
                 ),
                 Row(
                   children: <Widget>[
                     Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
                     SizedBox(width: 5,),
-                    Text(subtitle),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: isOver? Colors.red : Colors.black)
+                    )
                   ],
                 ),
               ]
@@ -534,28 +544,3 @@ class LabeledCheckbox extends StatelessWidget {
   }
 }
 
-class Record {
-  final String onegaiId;
-  final String content;
-  final DateTime dueDate;
-  bool status = true;
-  final DocumentReference reference;
-
-  Record.fromMap(Map<String, dynamic> map, {this.reference}) :
-      assert(map['onegaiId'] != null),
-      assert(map['content'] != null),
-      assert((map['dueDate']) != null),
-      assert((map['status']) != null),
-      onegaiId = map['onegaiId'],
-      content = map['content'],
-      dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
-      status = map['status'];
-
-  Record.fromSnapshot(dynamic snapshot): this.fromMap(
-      snapshot.data,
-      reference: snapshot.reference
-  );
-
-  @override
-  String toString() => "Record<$content: $dueDate>";
-}

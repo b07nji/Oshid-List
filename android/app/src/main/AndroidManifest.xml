@@ -9,7 +9,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="oshid_list_v1"
+        android:label="oshid-list"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
