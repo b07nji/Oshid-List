@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -59,6 +60,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       setState(() {
         initUserInfo(pref);
         initFCM();
+        FirebaseAdMob.instance.initialize(appId: 'ca-app-pub-3234540343519708~3708344405');
+
       });
     });
     //タブ生成

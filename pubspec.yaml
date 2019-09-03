@@ -23,6 +23,9 @@ dependencies:
   flutter_localizations:
       sdk: flutter
 
+  #AdMob
+  firebase_admob: 0.5.7
+
   #firebase cloud messaging
   #バージョンの互換性でエラー発生する. ひとまずリンクの解決法でしのぐ.
   #https://stackoverflow.com/questions/51839721/the-library-com-google-firebasefirebase-iid-is-being-requested-by-various-other
