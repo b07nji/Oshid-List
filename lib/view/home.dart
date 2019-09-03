@@ -425,18 +425,24 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   Widget _createTab(Tab tab, BuildContext context) {
-    var uuid;
-    if (tab.key == Key('0')) {
-      uuid = user.uuid;
-      print(uuid);
-    } else {
-      uuid = user.partnerId;
-      print(uuid);
-    }
     return StreamBuilder<QuerySnapshot> (
-      stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(uuid)).snapshots(),
+      stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(
+        tab.key == Key('0') ? user.uuid : user.partnerId
+      )).snapshots(),
+
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
+        if (sortByDate(snapshot.data.documents) == null) return Center(
+          child: Container(
+            child: Text(
+              tab.key == Key('0') ? 'お願いをいれてね' : '何か手伝うよ〜',
+              style: TextStyle(
+                color: constants.ivyGrey,
+                fontSize: 20
+              ),
+            ),
+          ),
+        );
         return _buildList(context, sortByDate(snapshot.data.documents), tab.key);
       },
     );
@@ -499,6 +505,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
+    if (list.isEmpty) return null;
     List<Map<String, dynamic>>  sortedList = [];
     list.forEach((snapshot) {
       sortedList.add(snapshot.data);

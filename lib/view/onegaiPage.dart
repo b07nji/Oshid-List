@@ -78,7 +78,7 @@ class OnegaiFormState extends State<OnegaiForm> {
             SizedBox(height: 20),
 
             TextFormField(
-              cursorColor:Colors.grey,
+              cursorColor: Colors.deepPurpleAccent,
               validator: (value) {
                 if (value.isEmpty) return "おねがいを入れてね";
                 return null;
@@ -88,7 +88,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                 labelText: 'おねがい',
                 labelStyle: TextStyle(color: constants.ivyGrey),
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),),
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
                 focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.deepPurpleAccent),),
                 ),
