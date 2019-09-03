@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert' show json;
+import 'package:http/http.dart' as http;
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,12 +13,8 @@ import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/store.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert' show json;
-import 'package:http/http.dart' as http;
-
 import '../constants.dart';
 import 'onegaiPage.dart';
-
 import "package:intl/intl.dart";
 
 final _onegaiReference = Firestore.instance.collection(constants.onegai);
@@ -39,7 +37,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  // 以下をStateの中に記述
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
@@ -62,31 +59,22 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         initFCM();
         FirebaseAdMob.instance.initialize(appId: 'ca-app-pub-3234540343519708~3708344405');
 
+        myBanner
+        // typically this happens well before the ad is shown
+          ..load()
+          ..show(
+            // Positions the banner ad 60 pixels from the bottom of the screen
+            anchorOffset: 0.0,
+            // Positions the banner ad 10 pixels from the center of the screen to the right
+//            horizontalCenterOffset: 10.0,
+            // Banner Position
+            anchorType: AnchorType.bottom,
+          );
       });
     });
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
 
-  }
-  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) => AlertDialog(
-        content: ListTile(
-          title: Text(message['notification']['title']),
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: Text('OK'),
-            onPressed: () {
-              fetchChangedUserInfo();
-              Navigator.of(context).pop();
-            },
-          )
-        ],
-      )
-    );
   }
 
   @override
@@ -99,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           width: 200,
           child: Image.asset(constants.flag),
         ),
-        backgroundColor: Colors.white,
+//        backgroundColor: Colors.white,
       ),
       body: TabBarView(
         controller: _tabController,
@@ -107,6 +95,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           return _createTab(tab, context);
         }).toList()
       ),
+
       endDrawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -115,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               height: 90,
               child: DrawerHeader(
                 decoration: BoxDecoration(
-                    color: Colors.white
+//                    color: Colors.white
                 ),
               ),
             ),
@@ -196,35 +185,30 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                     /**
                      * TODO: パートナー名取得
                      */
-                    var count = 0;
                     _userReference.document(partnerId).snapshots().forEach((snapshots) {
                       if (!snapshots.exists) {
-                        if (count == 1) return null;
-                        showDialog(
+                      showDialog(
                           barrierDismissible: false,
                           context: context,
                           builder: (context) {
                             return AlertDialog(
                               actions: <Widget>[
                                 FlatButton(
-                                  child: Text('パートナーのQRコードを読み込んでね'),
-                                  onPressed: () {
-                                    //push通知
-                                    postQrScannedNotification();
-                                    //更新した自分のパートナー情報をアプリに反映
-                                    fetchChangedUserInfo();
-                                    //ダイアログ閉じる
-                                    Navigator.pop(context, false);
-                                  }
+                                    child: Text('パートナーのQRコードを読み込んでね'),
+                                    onPressed: () {
+                                      //push通知
+                                      postQrScannedNotification();
+                                      //更新した自分のパートナー情報をアプリに反映
+                                      fetchChangedUserInfo();
+                                      //ダイアログ閉じる
+                                      Navigator.pop(context, false);
+                                    }
                                 ),
                               ],
                             );
                           }
                         );
-                        return null;
                       }
-
-                      count++;
 
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
                       store.savePartnerName(data[constants.userName]);
@@ -296,21 +280,44 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         },
       ),
 
-      //タブ生成
-      bottomNavigationBar: TabBar(
+      bottomSheet: TabBar(
         tabs: tabs,
         labelStyle: TextStyle(color: constants.ivyGrey),
         controller: _tabController,
         unselectedLabelColor: Colors.grey,
-        indicatorColor: constants.violet,
+//        indicatorColor: constants.violet,
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
-          horizontal: 18.0,
-          vertical: 8
+            horizontal: 18.0,
+            vertical: 8
         ),
         labelColor: Colors.black,
       ),
+
+      //タブ生成
+      bottomNavigationBar: SizedBox(height: 47,)
+    );
+  }
+
+  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text(message['notification']['title']),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                fetchChangedUserInfo();
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        )
     );
   }
 
@@ -494,6 +501,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           onChanged: (bool newValue) {
             Timer(Duration(milliseconds: 500), () {
               setState(() {
+                _onegai.status = newValue;
                 _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
                   //TODO: push通知
                   print(_onegai.reference);
@@ -581,7 +589,7 @@ class LabeledCheckbox extends StatelessWidget {
                       style: TextStyle(color: isOver? Colors.red : constants.ivyGrey)
                     )
                   ],
-                )
+                ),
               ]
              ),
             ),
@@ -598,3 +606,35 @@ class LabeledCheckbox extends StatelessWidget {
   }
 }
 
+MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+  keywords: <String>['flutterio', 'beautiful apps'],
+  contentUrl: 'https://flutter.io',
+  birthday: DateTime.now(),
+  childDirected: false,
+  designedForFamilies: false,
+  gender: MobileAdGender.male, // or MobileAdGender.female, MobileAdGender.unknown
+  testDevices: <String>[], // Android emulators are considered test devices
+);
+
+BannerAd myBanner = BannerAd(
+  // Replace the testAdUnitId with an ad unit id from the AdMob dash.
+  // https://developers.google.com/admob/android/test-ads
+  // https://developers.google.com/admob/ios/test-ads
+  adUnitId: BannerAd.testAdUnitId,
+  size: AdSize.smartBanner,
+  targetingInfo: targetingInfo,
+  listener: (MobileAdEvent event) {
+    print("BannerAd event is $event");
+  },
+);
+
+InterstitialAd myInterstitial = InterstitialAd(
+  // Replace the testAdUnitId with an ad unit id from the AdMob dash.
+  // https://developers.google.com/admob/android/test-ads
+  // https://developers.google.com/admob/ios/test-ads
+  adUnitId: InterstitialAd.testAdUnitId,
+  targetingInfo: targetingInfo,
+  listener: (MobileAdEvent event) {
+    print("InterstitialAd event is $event");
+  },
+);

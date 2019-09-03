@@ -48,10 +48,13 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       title: 'Oshid-List',
+      theme:ThemeData(
+        primaryColor: Colors.white,
+        accentColor: constants.violet,
+      ),
       home: _defaultHome,
       routes: <String, WidgetBuilder> {
         '/home': (BuildContext context) {
-          Timer(Duration(milliseconds: 500), () {});
           return MyHomePage();
         }
       },
