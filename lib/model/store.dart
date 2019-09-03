@@ -1,12 +1,13 @@
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../constants.dart';
+import '../constants.dart';
+
 
 final constants = Constants();
 final user = User();
 
-class Authentication {
+class Store {
 
   void saveUserInfo(String uuid, String userName) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();

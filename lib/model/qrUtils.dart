@@ -2,12 +2,7 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import 'auth/authentication.dart';
-
 class QRUtils {
-
-  final auth = Authentication();
-
 
   QrImage generateQr(var uuid) {
     return QrImage(

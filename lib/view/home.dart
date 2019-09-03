@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
-import 'package:oshid_list_v1/model/auth/authentication.dart';
+import 'package:oshid_list_v1/model/store.dart';
 import 'package:oshid_list_v1/model/qrUtils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert' show json;
@@ -22,7 +22,7 @@ final _onegaiReference = Firestore.instance.collection(constants.onegai);
 final _userReference = Firestore.instance.collection(constants.users);
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-final auth = Authentication();
+final store = Store();
 final user = User();
 final qr = QRUtils();
 final formatter = DateFormat('M/d E', "ja");
@@ -33,13 +33,11 @@ var hasPartner = false;
 
 class MyHomePage extends StatefulWidget {
 //  MyHomePage({Key key, this.title}) : super(key: key);
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   // 以下をStateの中に記述
   final List<Tab> tabs = <Tab> [
     Tab(
@@ -226,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage>
                       count++;
 
                       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-                      auth.savePartnerName(data[constants.userName]);
+                      store.savePartnerName(data[constants.userName]);
 
                       //TODO: リファクタ
                       //自分のパートナー情報更新
@@ -254,8 +252,8 @@ class _MyHomePageState extends State<MyHomePage>
                                         /**
                                          *  TODO: パートナーIDをローカルストレージ保存
                                          */
-                                        auth.saveHasPartnerFlag(true);
-                                        auth.savePartnerId(partnerId);
+                                        store.saveHasPartnerFlag(true);
+                                        store.savePartnerId(partnerId);
                                         user.hasPartner = true;
                                         user.partnerId = partnerId;
                                         hasPartner = true;
@@ -409,15 +407,15 @@ class _MyHomePageState extends State<MyHomePage>
     _userReference.document(user.uuid).snapshots().forEach((snapshots) {
       Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
 
-      auth.saveHasPartnerFlag(data[constants.hasPartner]);
+      store.saveHasPartnerFlag(data[constants.hasPartner]);
       user.hasPartner = data[constants.hasPartner];
 
-      auth.savePartnerId(data[constants.partnerId]);
+      store.savePartnerId(data[constants.partnerId]);
       user.partnerId = data[constants.partnerId];
 
       _userReference.document(user.partnerId).snapshots().forEach((snapshots) {
         Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-        auth.savePartnerName(data[constants.userName]);
+        store.savePartnerName(data[constants.userName]);
         setState(() {
           hasPartner = true;
           partnerName = data[constants.userName];
