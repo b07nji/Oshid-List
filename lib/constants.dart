@@ -23,6 +23,10 @@ class Constants {
   final serverKey = 'AAAAwldVx0o:APA91bFYc67P8oOR1F2FYOYFZdZG-qcmxQITKBEQk5nyCMpPPCLq4KD15diao8CWhBBKoW2V9ur02EqwUq3CLt9km5q3X7Pz_DHw5cS6PuTRj_ILvpB1ZvXpu9rNarQGlbtsZ6nutREp';
   final url = 'https://fcm.googleapis.com/fcm/send';
 
+  //AdMob
+  final appId = 'ca-app-pub-3234540343519708~3708344405';
+  final addUnitId = 'ca-app-pub-3234540343519708/8264512994';
+
   //タブ
   final me = '自分';
   final partner = 'パートナー';

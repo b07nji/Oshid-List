@@ -24,7 +24,7 @@ dependencies:
       sdk: flutter
 
   #AdMob
-  firebase_admob: 0.5.7
+  firebase_admob: ^0.9.0+7
 
   #firebase cloud messaging
   #バージョンの互換性でエラー発生する. ひとまずリンクの解決法でしのぐ.
