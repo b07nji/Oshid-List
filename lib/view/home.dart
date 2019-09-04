@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:oshid_list_v1/config/ads.dart';
 import 'package:oshid_list_v1/entity/onegai.dart';
 import 'package:oshid_list_v1/entity/user.dart';
 import 'package:oshid_list_v1/model/store.dart';
@@ -36,8 +38,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  // 以下をStateの中に記述
-
   final List<Tab> tabs = <Tab> [
     Tab(
       key: Key('0'),
@@ -58,31 +58,23 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       setState(() {
         initUserInfo(pref);
         initFCM();
+        FirebaseAdMob.instance.initialize(appId: constants.appId);
+        myBanner
+        // typically this happens well before the ad is shown
+          ..load()
+          ..show(
+            // Positions the banner ad 60 pixels from the bottom of the screen
+            anchorOffset: 0.0,
+            // Positions the banner ad 10 pixels from the center of the screen to the right
+            horizontalCenterOffset: 0.0,
+            // Banner Position
+            anchorType: AnchorType.bottom,
+          );
       });
     });
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
 
-  }
-  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) => AlertDialog(
-        content: ListTile(
-          title: Text(message['notification']['title']),
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: Text('OK'),
-            onPressed: () {
-              fetchChangedUserInfo();
-              Navigator.of(context).pop();
-            },
-          )
-        ],
-      )
-    );
   }
 
   @override
@@ -103,6 +95,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           return _createTab(tab, context);
         }).toList()
       ),
+
       endDrawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -194,26 +187,26 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                      */
                     _userReference.document(partnerId).snapshots().forEach((snapshots) {
                       if (!snapshots.exists) {
-                        showDialog(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                actions: <Widget>[
-                                  FlatButton(
-                                      child: Text('パートナーのQRコードを読み込んでね'),
-                                      onPressed: () {
-                                        //push通知
-                                        postQrScannedNotification();
-                                        //更新した自分のパートナー情報をアプリに反映
-                                        fetchChangedUserInfo();
-                                        //ダイアログ閉じる
-                                        Navigator.pop(context, false);
-                                      }
-                                  ),
-                                ],
-                              );
-                            }
+                      showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              actions: <Widget>[
+                                FlatButton(
+                                    child: Text('パートナーのQRコードを読み込んでね'),
+                                    onPressed: () {
+                                      //push通知
+                                      postQrScannedNotification();
+                                      //更新した自分のパートナー情報をアプリに反映
+                                      fetchChangedUserInfo();
+                                      //ダイアログ閉じる
+                                      Navigator.pop(context, false);
+                                    }
+                                ),
+                              ],
+                            );
+                          }
                         );
                       }
 
@@ -287,8 +280,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         },
       ),
 
-      //タブ生成
-      bottomNavigationBar: TabBar(
+      bottomSheet: TabBar(
         tabs: tabs,
         labelStyle: TextStyle(color: constants.ivyGrey),
         controller: _tabController,
@@ -297,11 +289,35 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: 2,
         indicatorPadding: EdgeInsets.symmetric(
-          horizontal: 18.0,
-          vertical: 8
+            horizontal: 18.0,
+            vertical: 8
         ),
         labelColor: Colors.black,
       ),
+
+      //タブ生成
+      bottomNavigationBar: SizedBox(height: 47,)
+    );
+  }
+
+  void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text(message['notification']['title']),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                fetchChangedUserInfo();
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        )
     );
   }
 
@@ -589,4 +605,3 @@ class LabeledCheckbox extends StatelessWidget {
     );
   }
 }
-
