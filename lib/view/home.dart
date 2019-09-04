@@ -511,9 +511,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               setState(() {
                 _onegai.status = newValue;
                 _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
-                  //TODO: push通知
-                  print(_onegai.reference);
-
                   if (key == Key('0')) sendCompleteNotification(_onegai.content);
 
                   print("deleted");
