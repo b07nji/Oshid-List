@@ -269,15 +269,23 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         ),
       ),
 
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add, size: 30, color: constants.violet,),
-        backgroundColor: constants.floatingButton,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => OnegaiCreator()),
-          );
-        },
+      floatingActionButton: Column(
+        verticalDirection: VerticalDirection.up, // childrenの先頭を下に配置
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 17,),
+
+          FloatingActionButton(
+            child: Icon(Icons.add, size: 30, color: constants.violet,),
+            backgroundColor: constants.floatingButton,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => OnegaiCreator()),
+              );
+            },
+          ),
+        ],
       ),
 
       bottomSheet: TabBar(
