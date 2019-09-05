@@ -37,8 +37,9 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  final List<Tab> tabs = <Tab> [
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
+  final List<Tab> tabs = <Tab>[
     Tab(
       key: Key('0'),
       text: constants.me,
@@ -60,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         initFCM();
         FirebaseAdMob.instance.initialize(appId: constants.appId);
         myBanner
-        // typically this happens well before the ad is shown
+          // typically this happens well before the ad is shown
           ..load()
           ..show(
             // Positions the banner ad 60 pixels from the bottom of the screen
@@ -74,238 +75,250 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     });
     //タブ生成
     _tabController = TabController(length: tabs.length, vsync: this);
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.black),
-        title: Container(
-          height: 50,
-          width: 200,
-          child: Image.asset(constants.flag),
-        ),
+        appBar: AppBar(
+          iconTheme: IconThemeData(color: Colors.black),
+          title: Container(
+            height: 50,
+            width: 200,
+            child: Image.asset(constants.flag),
+          ),
 //        backgroundColor: Colors.white,
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: tabs.map((tab) {
-          return _createTab(tab, context);
-        }).toList()
-      ),
-
-      endDrawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            Container(
-              height: 90,
-              child: DrawerHeader(
-                decoration: BoxDecoration(
+        ),
+        body: TabBarView(
+            controller: _tabController,
+            children: tabs.map((tab) {
+              return _createTab(tab, context);
+            }).toList()),
+        endDrawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              Container(
+                height: 90,
+                child: DrawerHeader(
+                  decoration: BoxDecoration(
 //                    color: Colors.white
+                      ),
                 ),
               ),
-            ),
-            Container(
-              child: Icon(
+              Container(
+                  child: Icon(
                 const IconData(59475, fontFamily: 'MaterialIcons'),
                 size: 77,
-              )
-            ),
-            Container(
-              child:Center(
-                child: Text(userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+              )),
+              Container(
+                child: Center(
+                  child: userName != null
+                      ? Text(
+                          userName,
+                          style:
+                              TextStyle(fontSize: 20, color: constants.violet),
+                        )
+                      : null,
+                ),
               ),
-            ),
-            SizedBox(width: 5.0),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  width: hasPartner ? 20 : 0,
-                  height: hasPartner ? 20 : 0,
-                  child: hasPartner ? Image.asset(constants.oshidoriBlue) : null,
-                ),
-                SizedBox(width: hasPartner ? 10.0 : 0),
-                Container(
-                  width: 20,
-                  height: 20,
-                  child: Image.asset(constants.oshidoriGreen),
+              SizedBox(width: 5.0),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    width: hasPartner ? 20 : 0,
+                    height: hasPartner ? 20 : 0,
+                    child:
+                        hasPartner ? Image.asset(constants.oshidoriBlue) : null,
                   ),
-              ],
-            ),
-
-            Center(
-              child: Text(partnerName, style: TextStyle(color: constants.ivyGrey),),
-            ),
-
-            Center(
-                child: Container(
-                  padding: EdgeInsets.only(top:30.0),
-                  child:Text('$userNameのQRコード', style: TextStyle(color: constants.ivyGrey),),
-
+                  SizedBox(width: hasPartner ? 10.0 : 0),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset(constants.oshidoriGreen),
+                  ),
+                ],
+              ),
+              Center(
+                child: Text(
+                  partnerName,
+                  style: TextStyle(color: constants.ivyGrey),
                 ),
-            ),
-            Center(
-              child: qr.generateQr(user.uuid),
-            ),
-            Center(
-              child: RaisedButton(
-                color: constants.violet,
-                child: Text('パートナーと繋がる', style: TextStyle(color: Colors.white),),
-                onPressed: () {
-                  qr.readQr().then((partnerId) {
-                    if (partnerId.isEmpty || partnerId == null) {
-                      showDialog(
-                        barrierDismissible: false,
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            actions: <Widget>[
-                              FlatButton(
-                                child: Text('パートナーのQRコードを読み込んでね'),
-                                onPressed: () {
-                                  //push通知
-                                  postQrScannedNotification();
-                                  //更新した自分のパートナー情報をアプリに反映
-                                  fetchChangedUserInfo();
-                                  //ダイアログ閉じる
-                                  Navigator.pop(context, false);
-                                }
-                              ),
-                            ],
-                          );
-                        }
-                      );
-                      return null;
-                    }
-                    /**
-                     * TODO: パートナー名取得
-                     */
-                    _userReference.document(partnerId).snapshots().forEach((snapshots) {
-                      if (!snapshots.exists) {
-                      showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              actions: <Widget>[
-                                FlatButton(
-                                    child: Text('パートナーのQRコードを読み込んでね'),
-                                    onPressed: () {
-                                      //push通知
-                                      postQrScannedNotification();
-                                      //更新した自分のパートナー情報をアプリに反映
-                                      fetchChangedUserInfo();
-                                      //ダイアログ閉じる
-                                      Navigator.pop(context, false);
-                                    }
-                                ),
-                              ],
-                            );
-                          }
-                        );
-                      }
-
-                      Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-                      store.savePartnerName(data[constants.userName]);
-
-                      //TODO: リファクタ
-                      //自分のパートナー情報更新
-                      _userReference.document(user.uuid).updateData({
-                        'hasPartner': true,
-                        'partnerId': partnerId
-                      }).whenComplete(() {
-                        //相手のパートナー情報更新
-                        _userReference.document(partnerId).updateData({
-                          'hasPartner': true,
-                          'partnerId': user.uuid
-                        }).whenComplete(() {
-                          showDialog(
+              ),
+              Center(
+                child: Container(
+                  padding: EdgeInsets.only(top: 30.0),
+                  child: userName != null
+                      ? Text(
+                          '$userNameのQRコード',
+                          style: TextStyle(color: constants.ivyGrey),
+                        )
+                      : null,
+                ),
+              ),
+              Center(
+                child: qr.generateQr(user.uuid),
+              ),
+              Center(
+                child: RaisedButton(
+                  color: constants.violet,
+                  child: Text(
+                    'パートナーと繋がる',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: () {
+                    qr.readQr().then((partnerId) {
+                      if (partnerId.isEmpty || partnerId == null) {
+                        showDialog(
                             barrierDismissible: false,
                             context: context,
                             builder: (context) {
                               return AlertDialog(
-                                title: Text(data[constants.userName] + 'さんを見つけました！'),
                                 actions: <Widget>[
                                   FlatButton(
-                                    child: Text('繋がる'),
-                                    onPressed: () {
-                                      //メニューバーのパートナー名反映
-                                      setState(() {
-                                        /**
-                                         *  TODO: パートナーIDをローカルストレージ保存
-                                         */
-                                        store.saveHasPartnerFlag(true);
-                                        store.savePartnerId(partnerId);
-                                        user.hasPartner = true;
-                                        user.partnerId = partnerId;
-                                        hasPartner = true;
-                                        partnerName = data[constants.userName];
-                                      });
-                                      //push通知
-                                      postQrScannedNotification();
-                                      //更新した自分のパートナー情報をアプリに反映
-                                      fetchChangedUserInfo();
-                                      //ダイアログ閉じる
-                                      Navigator.pop(context, false);
-                                    }
-                                  ),
+                                      child: Text('パートナーのQRコードを読み込んでね'),
+                                      onPressed: () {
+                                        //push通知
+                                        postQrScannedNotification();
+                                        //更新した自分のパートナー情報をアプリに反映
+                                        fetchChangedUserInfo();
+                                        //ダイアログ閉じる
+                                        Navigator.pop(context, false);
+                                      }),
                                 ],
                               );
-                            }
-                          );
+                            });
+                        return null;
+                      }
+                      /**
+                     * TODO: パートナー名取得
+                     */
+                      _userReference
+                          .document(partnerId)
+                          .snapshots()
+                          .forEach((snapshots) {
+                        if (!snapshots.exists) {
+                          showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  actions: <Widget>[
+                                    FlatButton(
+                                        child: Text('パートナーのQRコードを読み込んでね'),
+                                        onPressed: () {
+                                          //push通知
+                                          postQrScannedNotification();
+                                          //更新した自分のパートナー情報をアプリに反映
+                                          fetchChangedUserInfo();
+                                          //ダイアログ閉じる
+                                          Navigator.pop(context, false);
+                                        }),
+                                  ],
+                                );
+                              });
+                        }
+
+                        Map<String, dynamic> data =
+                            Map<String, dynamic>.from(snapshots.data);
+                        store.savePartnerName(data[constants.userName]);
+
+                        //TODO: リファクタ
+                        //自分のパートナー情報更新
+                        _userReference.document(user.uuid).updateData({
+                          'hasPartner': true,
+                          'partnerId': partnerId
+                        }).whenComplete(() {
+                          //相手のパートナー情報更新
+                          _userReference.document(partnerId).updateData({
+                            'hasPartner': true,
+                            'partnerId': user.uuid
+                          }).whenComplete(() {
+                            showDialog(
+                                barrierDismissible: false,
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text(data[constants.userName] +
+                                        'さんを見つけました！'),
+                                    actions: <Widget>[
+                                      FlatButton(
+                                          child: Text('繋がる'),
+                                          onPressed: () {
+                                            //メニューバーのパートナー名反映
+                                            setState(() {
+                                              /**
+                                         *  TODO: パートナーIDをローカルストレージ保存
+                                         */
+                                              store.saveHasPartnerFlag(true);
+                                              store.savePartnerId(partnerId);
+                                              user.hasPartner = true;
+                                              user.partnerId = partnerId;
+                                              hasPartner = true;
+                                              partnerName =
+                                                  data[constants.userName];
+                                            });
+                                            //push通知
+                                            postQrScannedNotification();
+                                            //更新した自分のパートナー情報をアプリに反映
+                                            fetchChangedUserInfo();
+                                            //ダイアログ閉じる
+                                            Navigator.pop(context, false);
+                                          }),
+                                    ],
+                                  );
+                                });
+                          });
                         });
                       });
                     });
-                  });
-                },
+                  },
+                ),
               ),
+            ],
+          ),
+        ),
+        floatingActionButton: Column(
+          verticalDirection: VerticalDirection.up, // childrenの先頭を下に配置
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(
+              height: 17,
+            ),
+            FloatingActionButton(
+              child: Icon(
+                Icons.add,
+                size: 30,
+                color: constants.violet,
+              ),
+              backgroundColor: constants.floatingButton,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OnegaiCreator()),
+                );
+              },
             ),
           ],
         ),
-      ),
-
-      floatingActionButton: Column(
-        verticalDirection: VerticalDirection.up, // childrenの先頭を下に配置
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 17,),
-
-          FloatingActionButton(
-            child: Icon(Icons.add, size: 30, color: constants.violet,),
-            backgroundColor: constants.floatingButton,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => OnegaiCreator()),
-              );
-            },
-          ),
-        ],
-      ),
-
-      bottomSheet: TabBar(
-        tabs: tabs,
-        labelStyle: TextStyle(color: constants.ivyGrey),
-        controller: _tabController,
-        unselectedLabelColor: Colors.grey,
+        bottomSheet: TabBar(
+          tabs: tabs,
+          labelStyle: TextStyle(color: constants.ivyGrey),
+          controller: _tabController,
+          unselectedLabelColor: Colors.grey,
 //        indicatorColor: constants.violet,
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicatorWeight: 2,
-        indicatorPadding: EdgeInsets.symmetric(
-            horizontal: 18.0,
-            vertical: 8
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicatorWeight: 2,
+          indicatorPadding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
+          labelColor: Colors.black,
         ),
-        labelColor: Colors.black,
-      ),
 
-      //タブ生成
-      bottomNavigationBar: SizedBox(height: 47,)
-    );
+        //タブ生成
+        bottomNavigationBar: SizedBox(
+          height: 47,
+        ));
   }
 
   void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
@@ -313,20 +326,19 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         barrierDismissible: false,
         context: context,
         builder: (context) => AlertDialog(
-          content: ListTile(
-            title: Text(message['notification']['title']),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('OK'),
-              onPressed: () {
-                fetchChangedUserInfo();
-                Navigator.of(context).pop();
-              },
-            )
-          ],
-        )
-    );
+              content: ListTile(
+                title: Text(message['notification']['title']),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    fetchChangedUserInfo();
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            ));
   }
 
   void initUserInfo(SharedPreferences pref) {
@@ -443,35 +455,33 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   Widget _createTab(Tab tab, BuildContext context) {
-    return StreamBuilder<QuerySnapshot> (
-      stream: _onegaiReference.where('owerRef', isEqualTo: _userReference.document(
-        tab.key == Key('0') ? user.uuid : user.partnerId
-      )).snapshots(),
-
+    return StreamBuilder<QuerySnapshot>(
+      stream: _onegaiReference
+          .where('owerRef',
+              isEqualTo: _userReference
+                  .document(tab.key == Key('0') ? user.uuid : user.partnerId))
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Container();
-        if (sortByDate(snapshot.data.documents) == null) return Center(
-          child: hasPartner ?
-            Container(
-              child: Text(
-                tab.key == Key('0') ? 'お願いをいれてね' : '何か手伝うよ〜',
-                style: TextStyle(
-                  color: constants.ivyGrey,
-                  fontSize: 20
-                ),
-              ),
-            ) :
-            Container (
-              child: Text(
-                'パートナーと繋がってね',
-                style: TextStyle(
-                    color: constants.ivyGrey,
-                    fontSize: 20
-                ),
-              ),
-            )
-        );
-        return _buildList(context, sortByDate(snapshot.data.documents), tab.key);
+        if (sortByDate(snapshot.data.documents) == null)
+          return Center(
+              child: hasPartner
+                  ? Container(
+                      child: Text(
+                        tab.key == Key('0') ? 'お願いをいれてね' : '何か手伝うよ〜',
+                        style:
+                            TextStyle(color: constants.ivyGrey, fontSize: 20),
+                      ),
+                    )
+                  : Container(
+                      child: Text(
+                        'パートナーと繋がってね',
+                        style:
+                            TextStyle(color: constants.ivyGrey, fontSize: 20),
+                      ),
+                    ));
+        return _buildList(
+            context, sortByDate(snapshot.data.documents), tab.key);
       },
     );
   }
@@ -479,7 +489,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   Widget _buildList(BuildContext context, List<dynamic> sortedList, Key key) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: sortedList.map((data) => _buildListItem(context,data, key)).toList(),
+      children:
+          sortedList.map((data) => _buildListItem(context, data, key)).toList(),
     );
   }
 
@@ -495,7 +506,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           borderRadius: BorderRadius.circular(5.0),
         ),
         child: LabeledCheckbox(
-          onTap:(){
+          onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => OnegaiCreator()),
@@ -503,18 +514,22 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           },
           label: _onegai.content,
           subtitle: formatter.format(_onegai.dueDate),
-          padding:EdgeInsets.all(10.0),
+          padding: EdgeInsets.all(10.0),
           value: _onegai.status,
           isOver: isOver(_onegai.dueDate),
           onChanged: (value) {
             setState(() {
               Firestore.instance.runTransaction((transaction) async {
-                await transaction.update(_onegaiReference.document(_onegai.onegaiId), {
-                  'status': true
-                }).then((value) {
+                await transaction.update(
+                    _onegaiReference.document(_onegai.onegaiId),
+                    {'status': true}).then((value) {
                   Timer(Duration(milliseconds: 750), () {
-                    _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
-                      if (key == Key('0')) sendCompleteNotification(_onegai.content);
+                    _onegaiReference
+                        .document(_onegai.onegaiId)
+                        .delete()
+                        .then((value) {
+                      if (key == Key('0'))
+                        sendCompleteNotification(_onegai.content);
                       print("deleted");
                     }).catchError((error) {
                       print(error);
@@ -530,13 +545,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   bool isOver(DateTime due) {
-    DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    DateTime today =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return DateTime(due.year, due.month, due.day).isBefore(today);
   }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
     if (list.isEmpty) return null;
-    List<Map<String, dynamic>>  sortedList = [];
+    List<Map<String, dynamic>> sortedList = [];
     list.forEach((snapshot) {
       sortedList.add(snapshot.data);
     });
@@ -552,15 +568,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 }
 
 class LabeledCheckbox extends StatelessWidget {
-  const LabeledCheckbox({
-    this.label,
-    this.subtitle,
-    this.value,
-    this.onChanged,
-    this.padding,
-    this.onTap,
-    this.isOver
-  });
+  const LabeledCheckbox(
+      {this.label,
+      this.subtitle,
+      this.value,
+      this.onChanged,
+      this.padding,
+      this.onTap,
+      this.isOver});
 
   final String label;
   final String subtitle;
@@ -583,26 +598,29 @@ class LabeledCheckbox extends StatelessWidget {
 //                MaterialPageRoute(builder: (context) => OnegaiCreator()),
 //              );},
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 25.0, color: isOver? constants.violet : constants.ivyGrey)
-                ),
-                Row(
-                  children: <Widget>[
-                    Icon(const IconData(59670, fontFamily: 'MaterialIcons'),),
-                    SizedBox(width: 5,),
-                    Text(
-                      subtitle,
-                      style: TextStyle(color: isOver? Colors.red : constants.ivyGrey)
-                    )
-                  ],
-                ),
-              ]
-             ),
-            ),
-            Checkbox(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(label,
+                      style: TextStyle(
+                          fontSize: 25.0,
+                          color:
+                              isOver ? constants.violet : constants.ivyGrey)),
+                  Row(
+                    children: <Widget>[
+                      Icon(
+                        const IconData(59670, fontFamily: 'MaterialIcons'),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Text(subtitle,
+                          style: TextStyle(
+                              color: isOver ? Colors.red : constants.ivyGrey))
+                    ],
+                  ),
+                ]),
+          ),
+          Checkbox(
             value: value,
             activeColor: constants.violet,
             onChanged: (bool newValue) {

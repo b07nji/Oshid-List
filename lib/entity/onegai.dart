@@ -15,14 +15,16 @@ class OnegaiResponse {
   bool status = true;
   final DocumentReference reference;
 
-  OnegaiResponse.fromMap(Map<String, dynamic> map, {this.reference}) :
+  OnegaiResponse.fromMap(Map<String, dynamic> map, {this.reference})
+      :
 //        assert(map['onegaiId'] != null),
 //        assert(map['content'] != null),
 //        assert((map['dueDate']) != null),
 //        assert((map['status']) != null),
         onegaiId = map['onegaiId'],
         content = map['content'],
-        dueDate = DateTime.fromMillisecondsSinceEpoch(map['dueDate'].millisecondsSinceEpoch),
+        dueDate = DateTime.fromMillisecondsSinceEpoch(
+            map['dueDate'].millisecondsSinceEpoch),
         status = map['status'];
 
   @override

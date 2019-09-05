@@ -28,7 +28,10 @@ class OnegaiCreator extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: constants.darkGold),
-        title: Text('おねがいする', style: TextStyle(color: constants.darkGold),),
+        title: Text(
+          'おねがいする',
+          style: TextStyle(color: constants.darkGold),
+        ),
 //        backgroundColor: Colors.white,
       ),
       body: Center(
@@ -74,59 +77,71 @@ class OnegaiFormState extends State<OnegaiForm> {
         child: ListView(
           padding: EdgeInsets.all(30),
           children: <Widget>[
-
             SizedBox(height: 20),
-
             TextFormField(
-              cursorColor: Colors.deepPurpleAccent,
-              validator: (value) {
-                if (value.isEmpty) return "おねがいを入れてね";
-                return null;
-              },
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                labelText: 'おねがい',
-                labelStyle: TextStyle(color: constants.ivyGrey),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),
+                cursorColor: Colors.deepPurpleAccent,
+                validator: (value) {
+                  if (value.isEmpty) return "おねがいを入れてね";
+                  return null;
+                },
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  labelText: 'おねがい',
+                  labelStyle: TextStyle(color: constants.ivyGrey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.deepPurpleAccent),
+                  ),
                 ),
-                focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.deepPurpleAccent),),
-                ),
-              onSaved: (value) => (setState(() => _onegai.content = value))
-            ),
-
+                onSaved: (value) => (setState(() => _onegai.content = value))),
             SizedBox(height: 10),
-
-            Text('誰に?', style: TextStyle(color: constants.ivyGrey),),
+            Text(
+              '誰に?',
+              style: TextStyle(color: constants.ivyGrey),
+            ),
             Center(
               child: Column(
                 children: <Widget>[
                   RadioListTile(
-                    title: Text(partnerName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
-                    value: Status.Yours,
-                    groupValue: _radVal,
+                      title: Text(
+                        partnerName,
+                        style:
+                            TextStyle(color: constants.ivyGrey, fontSize: 20.0),
+                      ),
+                      value: Status.Yours,
+                      groupValue: _radVal,
 //                    activeColor: constants.violet,
-                    onChanged: _onChanged),
+                      onChanged: _onChanged),
                   RadioListTile(
-                    title: Text('ふたりで', style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
-                    value: Status.Together,
-                    groupValue: _radVal,
+                      title: Text(
+                        'ふたりで',
+                        style:
+                            TextStyle(color: constants.ivyGrey, fontSize: 20.0),
+                      ),
+                      value: Status.Together,
+                      groupValue: _radVal,
 //                    activeColor: constants.violet,
-                    onChanged: _onChanged),
+                      onChanged: _onChanged),
                   RadioListTile(
-                    title: Text(user.userName, style: TextStyle(color: constants.ivyGrey, fontSize: 20.0),),
-                    value: Status.Mine,
-                    groupValue: _radVal,
+                      title: Text(
+                        user.userName,
+                        style:
+                            TextStyle(color: constants.ivyGrey, fontSize: 20.0),
+                      ),
+                      value: Status.Mine,
+                      groupValue: _radVal,
 //                    activeColor: constants.violet,
-                    onChanged: _onChanged),
+                      onChanged: _onChanged),
                 ],
               ),
             ),
-
             SizedBox(height: 10),
-
-            Text('いつまでに?', style: TextStyle(color: constants.ivyGrey),),
+            Text(
+              'いつまでに?',
+              style: TextStyle(color: constants.ivyGrey),
+            ),
             SizedBox(
               width: 150,
               child: RaisedButton.icon(
@@ -139,9 +154,9 @@ class OnegaiFormState extends State<OnegaiForm> {
                 ),
               ),
             ),
-
-            SizedBox(height: 50,),
-
+            SizedBox(
+              height: 50,
+            ),
             SizedBox(
               width: 150,
               child: RaisedButton(
@@ -154,70 +169,62 @@ class OnegaiFormState extends State<OnegaiForm> {
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     Scaffold.of(context).showSnackBar(SnackBar(
-                      content: Text('送信しています'),
+                      content: Container(
+                        height: 65,
+                        child: Text(
+                          '送信しています',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ));
                     _formKey.currentState.save();
 
                     // 自分
                     if (_radVal == Status.Mine) {
-                      _onegaiReference.add(
-                        {
-                          'content': _onegai.content,
-                          'dueDate': _onegai.dueDate,
-                          'status': false,
-                          'owerRef': _userReference.document(user.uuid)
-                        }
-                      ).then((docRef) {
-                        _onegaiReference.document(docRef.documentID).updateData(
-                          {
-                            'onegaiId': docRef.documentID
-                          }
-                        );
+                      _onegaiReference.add({
+                        'content': _onegai.content,
+                        'dueDate': _onegai.dueDate,
+                        'status': false,
+                        'owerRef': _userReference.document(user.uuid)
+                      }).then((docRef) {
+                        _onegaiReference
+                            .document(docRef.documentID)
+                            .updateData({'onegaiId': docRef.documentID});
                         Navigator.of(context).pop('/home');
                       });
 
                       // パートナー
-                    } else if(_radVal == Status.Yours) {
-                      _onegaiReference.add(
-                          {
-                            'content': _onegai.content,
-                            'dueDate': _onegai.dueDate,
-                            'status': false,
-                            'owerRef': _userReference.document(user.partnerId)
-
-                          }
-                      ).then((docRef) {
-                        _onegaiReference.document(docRef.documentID).updateData(
-                            {
-                              'onegaiId': docRef.documentID
-                            }
-                        );
+                    } else if (_radVal == Status.Yours) {
+                      _onegaiReference.add({
+                        'content': _onegai.content,
+                        'dueDate': _onegai.dueDate,
+                        'status': false,
+                        'owerRef': _userReference.document(user.partnerId)
+                      }).then((docRef) {
+                        _onegaiReference
+                            .document(docRef.documentID)
+                            .updateData({'onegaiId': docRef.documentID});
                         postAddOnegaiNotification(_onegai.content);
                         Navigator.of(context).pop('/home');
                       });
                       // ふたりで
                     } else {
                       [user.uuid, user.partnerId].forEach((uuid) {
-                        _onegaiReference.add(
-                            {
-                              'content': _onegai.content,
-                              'dueDate': _onegai.dueDate,
-                              'status': false,
-                              'owerRef': _userReference.document(uuid)
-                            }
-                        ).then((docRef) {
-                          _onegaiReference.document(docRef.documentID).updateData(
-                            {
-                              'onegaiId': docRef.documentID
-                            }
-                          );
+                        _onegaiReference.add({
+                          'content': _onegai.content,
+                          'dueDate': _onegai.dueDate,
+                          'status': false,
+                          'owerRef': _userReference.document(uuid)
+                        }).then((docRef) {
+                          _onegaiReference
+                              .document(docRef.documentID)
+                              .updateData({'onegaiId': docRef.documentID});
                         });
                       });
 
                       postAddOnegaiNotification(_onegai.content);
                       Timer(Duration(milliseconds: 1000), () {
                         Navigator.of(context).pop('/home');
-
                       });
                     }
                   }
@@ -250,8 +257,7 @@ class OnegaiFormState extends State<OnegaiForm> {
         context: context,
         initialDate: new DateTime.now(),
         firstDate: DateTime(1994),
-        lastDate: DateTime(2025)
-    );
+        lastDate: DateTime(2025));
     if (picked != null) {
       setState(() => _onegai.dueDate = picked);
     }
@@ -261,17 +267,16 @@ class OnegaiFormState extends State<OnegaiForm> {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          content: ListTile(
-            title: Text('パートナーと繋がってね'),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            )
-          ],
-        )
-    );
+              content: ListTile(
+                title: Text('パートナーと繋がってね'),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('OK'),
+                  onPressed: () => Navigator.of(context).pop(),
+                )
+              ],
+            ));
   }
 
   void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
@@ -279,19 +284,18 @@ class OnegaiFormState extends State<OnegaiForm> {
         barrierDismissible: false,
         context: context,
         builder: (context) => AlertDialog(
-          content: ListTile(
-            title: Text(message['notification']['title']),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
-          ],
-        )
-    );
+              content: ListTile(
+                title: Text(message['notification']['title']),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            ));
   }
 
   void initFCM() {
@@ -362,10 +366,12 @@ class OnegaiFormState extends State<OnegaiForm> {
 
           break;
         case Status.Yours:
-        //パートナーが自分と繋がっているか
+          //パートナーが自分と繋がっているか
           _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
+            Map<String, dynamic> data =
+                Map<String, dynamic>.from(snapshots.data);
+            if (data[constants.hasPartner] == false ||
+                data[constants.partnerId] == "no partner") {
               _buildNoPartnerDialog(context);
             }
           });
@@ -374,16 +380,17 @@ class OnegaiFormState extends State<OnegaiForm> {
           if (user.hasPartner) {
             _radVal = value;
             user.partnerId = preferences.getString(constants.partnerId);
-
           } else {
             _buildNoPartnerDialog(context);
           }
           break;
         case Status.Together:
-        //パートナーが自分と繋がっているか
+          //パートナーが自分と繋がっているか
           _userReference.document(user.uuid).snapshots().forEach((snapshots) {
-            Map<String, dynamic> data = Map<String, dynamic>.from(snapshots.data);
-            if (data[constants.hasPartner] == false || data[constants.partnerId] == "no partner") {
+            Map<String, dynamic> data =
+                Map<String, dynamic>.from(snapshots.data);
+            if (data[constants.hasPartner] == false ||
+                data[constants.partnerId] == "no partner") {
               _buildNoPartnerDialog(context);
             }
           });
@@ -393,7 +400,6 @@ class OnegaiFormState extends State<OnegaiForm> {
             _radVal = value;
             user.uuid = preferences.getString(constants.uuid);
             user.partnerId = preferences.getString(constants.partnerId);
-
           } else {
             _buildNoPartnerDialog(context);
           }

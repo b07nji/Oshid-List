@@ -23,7 +23,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   Widget _defaultHome = LoginPage();
 
   SharedPreferences preferences;
@@ -45,22 +44,21 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'Oshid-List',
-      theme:ThemeData(
+      theme: ThemeData(
         primaryColor: Colors.white,
         accentColor: constants.violet,
       ),
       home: _defaultHome,
-      routes: <String, WidgetBuilder> {
+      routes: <String, WidgetBuilder>{
         '/home': (BuildContext context) {
           return MyHomePage();
         }
       },
       localizationsDelegates: [
-       GlobalMaterialLocalizations.delegate,
-       GlobalWidgetsLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: [
         const Locale("en"),
