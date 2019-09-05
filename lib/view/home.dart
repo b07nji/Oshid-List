@@ -506,19 +506,20 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           padding:EdgeInsets.all(10.0),
           value: _onegai.status,
           isOver: isOver(_onegai.dueDate),
-          onChanged: (bool newValue) {
-            Timer(Duration(milliseconds: 500), () {
-              setState(() {
-                _onegai.status = newValue;
-                _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
-                  //TODO: push通知
-                  print(_onegai.reference);
-
-                  if (key == Key('0')) sendCompleteNotification(_onegai.content);
-
-                  print("deleted");
-                }).catchError((error) {
-                  print(error);
+          onChanged: (value) {
+            setState(() {
+              Firestore.instance.runTransaction((transaction) async {
+                await transaction.update(_onegaiReference.document(_onegai.onegaiId), {
+                  'status': true
+                }).then((value) {
+                  Timer(Duration(milliseconds: 750), () {
+                    _onegaiReference.document(_onegai.onegaiId).delete().then((value) {
+                      if (key == Key('0')) sendCompleteNotification(_onegai.content);
+                      print("deleted");
+                    }).catchError((error) {
+                      print(error);
+                    });
+                  });
                 });
               });
             });
