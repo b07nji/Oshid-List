@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
 
                           if (_formKey.currentState.validate()) {
                             Scaffold.of(context)
-                                .showSnackBar(SnackBar(content: Text('送信しています')));
+                                .showSnackBar(SnackBar(content: Text('送信しています', textAlign: TextAlign.center,)));
                           }
                           _formKey.currentState.save();
                           //TODO: user.uuidへの代入をする場所考える
