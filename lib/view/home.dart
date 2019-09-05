@@ -116,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             ),
             Container(
               child:Center(
-                child: Text(userName, style: TextStyle(fontSize: 20, color: constants.violet),),
+                child: userName != null ? Text(userName, style: TextStyle(fontSize: 20, color: constants.violet),) : null,
               ),
             ),
             SizedBox(width: 5.0),
@@ -145,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             Center(
                 child: Container(
                   padding: EdgeInsets.only(top:30.0),
-                  child:Text('$userNameのQRコード', style: TextStyle(color: constants.ivyGrey),),
+                  child: userName != null ? Text('$userNameのQRコード', style: TextStyle(color: constants.ivyGrey),) : null,
 
                 ),
             ),
