@@ -3,12 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
 
-
 final constants = Constants();
 final user = User();
 
 class Store {
-
   void saveUserInfo(String uuid, String userName) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     user.uuid = (preferences.getString(constants.uuid) ?? null);
@@ -51,4 +49,3 @@ class Store {
     return (prefs.getString(constants.partnerName) ?? null);
   }
 }
-
