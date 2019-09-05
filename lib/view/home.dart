@@ -592,11 +592,6 @@ class LabeledCheckbox extends StatelessWidget {
       child: Row(
         children: <Widget>[
           Expanded(
-//              child:InkWell(
-//              onTap:(){Navigator.push(
-//                context,
-//                MaterialPageRoute(builder: (context) => OnegaiCreator()),
-//              );},
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
