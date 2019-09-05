@@ -154,7 +154,10 @@ class OnegaiFormState extends State<OnegaiForm> {
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     Scaffold.of(context).showSnackBar(SnackBar(
-                      content: Text('送信しています'),
+                      content: Container(
+                        height: 65,
+                        child: Text('送信しています', textAlign: TextAlign.center,),
+                      ),
                     ));
                     _formKey.currentState.save();
 
