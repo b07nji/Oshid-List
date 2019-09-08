@@ -73,10 +73,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(color: Colors.white),
                         ),
                         onPressed: () {
-
-                          count++;
-
-                          if (count == 1) {
+                          if (count == 0) {
                             // TODO: ログイン処理
                             //1. generate uuid
                             var uuid = Uuid();
@@ -108,6 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.of(context).pushReplacementNamed('/home');
                             });
                           }
+                          count++;
                         },
                       ),
                     ),
