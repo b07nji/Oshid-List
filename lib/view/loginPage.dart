@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 final store = Store();
 final user = User();
 final _userReference = Firestore.instance.collection(constants.users);
+var count = 0;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -72,36 +73,39 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(color: Colors.white),
                         ),
                         onPressed: () {
-                          // TODO: ログイン処理
-                          //1. generate uuid
-                          var uuid = Uuid();
+                          if (count == 0) {
+                            // TODO: ログイン処理
+                            //1. generate uuid
+                            var uuid = Uuid();
 
-                          if (_formKey.currentState.validate()) {
-                            Scaffold.of(context).showSnackBar(SnackBar(
-                                content: Text(
-                              '送信しています',
-                              textAlign: TextAlign.center,
-                            )));
+                            if (_formKey.currentState.validate()) {
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                  content: Text(
+                                    '送信しています',
+                                    textAlign: TextAlign.center,
+                                  )));
+                            }
+                            _formKey.currentState.save();
+                            //TODO: user.uuidへの代入をする場所考える
+                            user.uuid = uuid.v1();
+                            user.hasPartner = false;
+                            user.partnerId = "no partner";
+
+                            _userReference.document(user.uuid).setData({
+                              'uuid': user.uuid,
+                              'userName': user.userName,
+                              'hasPartner': user.hasPartner,
+                              'partnerId': user.partnerId
+                            }).whenComplete(() {
+                              //3. add to preference. if no sentence below here, can't relate user with onegai
+                              store.saveUserInfo(user.uuid, user.userName);
+                              store.saveHasPartnerFlag(user.hasPartner);
+                              store.savePartnerId(user.partnerId);
+
+                              Navigator.of(context).pushReplacementNamed('/home');
+                            });
                           }
-                          _formKey.currentState.save();
-                          //TODO: user.uuidへの代入をする場所考える
-                          user.uuid = uuid.v1();
-                          user.hasPartner = false;
-                          user.partnerId = "no partner";
-
-                          _userReference.document(user.uuid).setData({
-                            'uuid': user.uuid,
-                            'userName': user.userName,
-                            'hasPartner': user.hasPartner,
-                            'partnerId': user.partnerId
-                          }).whenComplete(() {
-                            //3. add to preference. if no sentence below here, can't relate user with onegai
-                            store.saveUserInfo(user.uuid, user.userName);
-                            store.saveHasPartnerFlag(user.hasPartner);
-                            store.savePartnerId(user.partnerId);
-
-                            Navigator.of(context).pushReplacementNamed('/home');
-                          });
+                          count++;
                         },
                       ),
                     ),

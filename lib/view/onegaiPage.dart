@@ -231,6 +231,9 @@ class OnegaiFormState extends State<OnegaiForm> {
                 },
               ),
             ),
+            SizedBox(
+              height: 200,
+            ),
           ],
         ),
       ),
