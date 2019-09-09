@@ -55,9 +55,11 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       validator: (value) {
-                        if (value.isEmpty) {
-                          return 'ニックネームを入れてね';
-                        }
+                        if (value.isEmpty) return 'ニックネームを入れてね';
+                        // \s = 半角スペース、タブ、改行のどれか1文字, \S = 半角スペース、タブ、改行以外の1文字
+                        if (value.contains(RegExp(r"\s")) &&
+                            !value.contains(RegExp(r"\S"))) return "おねがいを入れてね";
+                        if (value.length >= 7) return "ニックネームは７文字まで！";
                         return null;
                       },
                       onSaved: (value) {
@@ -74,38 +76,36 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         onPressed: () {
                           if (count == 0) {
-                            // TODO: ログイン処理
-                            //1. generate uuid
-                            var uuid = Uuid();
-
                             if (_formKey.currentState.validate()) {
                               Scaffold.of(context).showSnackBar(SnackBar(
                                   content: Text(
-                                    '送信しています',
-                                    textAlign: TextAlign.center,
-                                  )));
+                                '送信しています',
+                                textAlign: TextAlign.center,
+                              )));
+                              _formKey.currentState.save();
+                              //TODO: user.uuidへの代入をする場所考える
+                              var uuid = Uuid();
+                              user.uuid = uuid.v1();
+                              user.hasPartner = false;
+                              user.partnerId = "no partner";
+
+                              _userReference.document(user.uuid).setData({
+                                'uuid': user.uuid,
+                                'userName': user.userName,
+                                'hasPartner': user.hasPartner,
+                                'partnerId': user.partnerId
+                              }).whenComplete(() {
+                                //3. add to preference. if no sentence below here, can't relate user with onegai
+                                store.saveUserInfo(user.uuid, user.userName);
+                                store.saveHasPartnerFlag(user.hasPartner);
+                                store.savePartnerId(user.partnerId);
+
+                                Navigator.of(context)
+                                    .pushReplacementNamed('/home');
+                              });
+                              count++;
                             }
-                            _formKey.currentState.save();
-                            //TODO: user.uuidへの代入をする場所考える
-                            user.uuid = uuid.v1();
-                            user.hasPartner = false;
-                            user.partnerId = "no partner";
-
-                            _userReference.document(user.uuid).setData({
-                              'uuid': user.uuid,
-                              'userName': user.userName,
-                              'hasPartner': user.hasPartner,
-                              'partnerId': user.partnerId
-                            }).whenComplete(() {
-                              //3. add to preference. if no sentence below here, can't relate user with onegai
-                              store.saveUserInfo(user.uuid, user.userName);
-                              store.saveHasPartnerFlag(user.hasPartner);
-                              store.savePartnerId(user.partnerId);
-
-                              Navigator.of(context).pushReplacementNamed('/home');
-                            });
                           }
-                          count++;
                         },
                       ),
                     ),

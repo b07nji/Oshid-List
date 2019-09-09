@@ -82,6 +82,9 @@ class OnegaiFormState extends State<OnegaiForm> {
                 cursorColor: Colors.deepPurpleAccent,
                 validator: (value) {
                   if (value.isEmpty) return "おねがいを入れてね";
+                  if (value.contains(RegExp(r"\s")) &&
+                      !value.contains(RegExp(r"\S"))) return "おねがいを入れてね";
+                  if (value.length >= 30) return "おねがいは30文字まで！";
                   return null;
                 },
                 keyboardType: TextInputType.text,
