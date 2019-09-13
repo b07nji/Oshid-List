@@ -497,6 +497,9 @@ class _MyHomePageState extends State<MyHomePage>
   Widget _buildListItem(BuildContext context, dynamic data, Key key) {
     final _onegai = OnegaiResponse.fromMap(data);
 
+    //TODO: TEST
+    if (isOnDue(_onegai)) sendDueNotification(_onegai.content);
+
     return Padding(
       key: ValueKey(_onegai.content),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -548,6 +551,44 @@ class _MyHomePageState extends State<MyHomePage>
     DateTime today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return DateTime(due.year, due.month, due.day).isBefore(today);
+  }
+
+  bool isOnDue(OnegaiResponse _onegai) {
+    DateTime today =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+    var due = _onegai.dueDate;
+    var createdAt = _onegai.createdAt;
+
+    if (DateTime(createdAt.year, createdAt.month, createdAt.day).isAtSameMomentAs(today)) return false;
+
+    return DateTime(due.year, due.month, due.day).isAtSameMomentAs(today);
+  }
+
+  void sendDueNotification(String onegai) async {
+    var serverKey = constants.serverKey;
+    final notification = {
+      "to": "/topics/" + user.uuid,
+      "notification": {"title": "$onegaiの期日が迫ってるよ！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+    } else {
+      print("failed push notification");
+    }
   }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
