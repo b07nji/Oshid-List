@@ -308,7 +308,6 @@ class _MyHomePageState extends State<MyHomePage>
           labelStyle: TextStyle(color: constants.ivyGrey),
           controller: _tabController,
           unselectedLabelColor: Colors.grey,
-//        indicatorColor: constants.violet,
           indicatorSize: TabBarIndicatorSize.tab,
           indicatorWeight: 2,
           indicatorPadding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
@@ -497,8 +496,8 @@ class _MyHomePageState extends State<MyHomePage>
   Widget _buildListItem(BuildContext context, dynamic data, Key key) {
     final _onegai = OnegaiResponse.fromMap(data);
 
-    //TODO: TEST
-    if (isOnDue(_onegai)) sendDueNotification(_onegai.content);
+    //自分へのお願いの場合は、期日当日にpush通知
+    if (key == Key('0')) if (isOnDue(_onegai)) sendDueNotification(_onegai);
 
     return Padding(
       key: ValueKey(_onegai.content),
@@ -555,18 +554,23 @@ class _MyHomePageState extends State<MyHomePage>
 
   bool isOnDue(OnegaiResponse _onegai) {
     DateTime today =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
     var due = _onegai.dueDate;
     var createdAt = _onegai.createdAt;
 
-    if (DateTime(createdAt.year, createdAt.month, createdAt.day).isAtSameMomentAs(today)) return false;
+    if (DateTime(createdAt.year, createdAt.month, createdAt.day)
+        .isAtSameMomentAs(today)) return false;
 
     return DateTime(due.year, due.month, due.day).isAtSameMomentAs(today);
   }
 
-  void sendDueNotification(String onegai) async {
+  void sendDueNotification(OnegaiResponse _onegai) async {
+    if (!_onegai.isDueNotificationPushed) return null;
+
     var serverKey = constants.serverKey;
+    var onegai = _onegai.content;
+
     final notification = {
       "to": "/topics/" + user.uuid,
       "notification": {"title": "$onegaiの期日が迫ってるよ！"},
@@ -586,6 +590,10 @@ class _MyHomePageState extends State<MyHomePage>
 
     if (response.statusCode == 200) {
       print("pushed notification successfully");
+
+      _onegaiReference
+          .document(_onegai.onegaiId)
+          .updateData({'isDueNotificationPushed': true});
     } else {
       print("failed push notification");
     }
