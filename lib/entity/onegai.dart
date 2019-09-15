@@ -6,13 +6,17 @@ class OnegaiRequest {
   String owerRef;
   DateTime dueDate = DateTime.now();
   bool status;
+  bool isDueNotificationPushed;
+  DateTime createdAt;
 }
 
 class OnegaiResponse {
   final String onegaiId;
   final String content;
   final DateTime dueDate;
+  final DateTime createdAt;
   bool status = true;
+  bool isDueNotificationPushed;
   final DocumentReference reference;
 
   OnegaiResponse.fromMap(Map<String, dynamic> map, {this.reference})
@@ -25,7 +29,10 @@ class OnegaiResponse {
         content = map['content'],
         dueDate = DateTime.fromMillisecondsSinceEpoch(
             map['dueDate'].millisecondsSinceEpoch),
-        status = map['status'];
+        createdAt = DateTime.fromMillisecondsSinceEpoch(
+            map['dueDate'].millisecondsSinceEpoch),
+        status = map['status'],
+        isDueNotificationPushed = map['isDueNotificationPushed'];
 
   @override
   String toString() => "Record<$content: $dueDate>";

@@ -188,6 +188,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                         'content': _onegai.content,
                         'dueDate': _onegai.dueDate,
                         'status': false,
+                        'createdAt': DateTime.now(),
+                        'isDueNotificationPushed': false,
                         'owerRef': _userReference.document(user.uuid)
                       }).then((docRef) {
                         _onegaiReference
@@ -202,6 +204,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                         'content': _onegai.content,
                         'dueDate': _onegai.dueDate,
                         'status': false,
+                        'createdAt': DateTime.now(),
+                        'isDueNotificationPushed': false,
                         'owerRef': _userReference.document(user.partnerId)
                       }).then((docRef) {
                         _onegaiReference
@@ -217,6 +221,8 @@ class OnegaiFormState extends State<OnegaiForm> {
                           'content': _onegai.content,
                           'dueDate': _onegai.dueDate,
                           'status': false,
+                          'createdAt': DateTime.now(),
+                          'isDueNotificationPushed': false,
                           'owerRef': _userReference.document(uuid)
                         }).then((docRef) {
                           _onegaiReference
