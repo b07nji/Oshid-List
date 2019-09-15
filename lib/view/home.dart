@@ -296,7 +296,7 @@ class _MyHomePageState extends State<MyHomePage>
         },
       ),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.only(bottom: 42.0),
+        padding: EdgeInsets.only(bottom: 44.0),
         child: TabBar(
           tabs: tabs,
           labelStyle: TextStyle(color: constants.ivyGrey),
