@@ -80,97 +80,125 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          iconTheme: IconThemeData(color: Colors.black),
-          title: Container(
-            height: 50,
-            width: 200,
-            child: Image.asset(constants.flag),
-          ),
-//        backgroundColor: Colors.white,
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.black),
+        title: Container(
+          height: 50,
+          width: 200,
+          child: Image.asset(constants.flag),
         ),
-        body: TabBarView(
-            controller: _tabController,
-            children: tabs.map((tab) {
-              return _createTab(tab, context);
-            }).toList()),
-        endDrawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              Container(
-                height: 90,
-                child: DrawerHeader(
-                  decoration: BoxDecoration(
+//        backgroundColor: Colors.white,
+      ),
+      body: TabBarView(
+          controller: _tabController,
+          children: tabs.map((tab) {
+            return _createTab(tab, context);
+          }).toList()),
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            Container(
+              height: 90,
+              child: DrawerHeader(
+                decoration: BoxDecoration(
 //                    color: Colors.white
-                      ),
+                    ),
+              ),
+            ),
+            Container(
+                child: Icon(
+              const IconData(59475, fontFamily: 'MaterialIcons'),
+              size: 77,
+            )),
+            Container(
+              child: Center(
+                child: userName != null
+                    ? Text(
+                        userName,
+                        style: TextStyle(fontSize: 20, color: constants.violet),
+                      )
+                    : null,
+              ),
+            ),
+            SizedBox(width: 5.0),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: hasPartner ? 20 : 0,
+                  height: hasPartner ? 20 : 0,
+                  child:
+                      hasPartner ? Image.asset(constants.oshidoriBlue) : null,
                 ),
-              ),
-              Container(
-                  child: Icon(
-                const IconData(59475, fontFamily: 'MaterialIcons'),
-                size: 77,
-              )),
-              Container(
-                child: Center(
-                  child: userName != null
-                      ? Text(
-                          userName,
-                          style:
-                              TextStyle(fontSize: 20, color: constants.violet),
-                        )
-                      : null,
+                SizedBox(width: hasPartner ? 10.0 : 0),
+                Container(
+                  width: 20,
+                  height: 20,
+                  child: Image.asset(constants.oshidoriGreen),
                 ),
+              ],
+            ),
+            Center(
+              child: Text(
+                partnerName,
+                style: TextStyle(color: constants.ivyGrey),
               ),
-              SizedBox(width: 5.0),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    width: hasPartner ? 20 : 0,
-                    height: hasPartner ? 20 : 0,
-                    child:
-                        hasPartner ? Image.asset(constants.oshidoriBlue) : null,
-                  ),
-                  SizedBox(width: hasPartner ? 10.0 : 0),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    child: Image.asset(constants.oshidoriGreen),
-                  ),
-                ],
+            ),
+            Center(
+              child: Container(
+                padding: EdgeInsets.only(top: 30.0),
+                child: userName != null
+                    ? Text(
+                        '$userNameのQRコード',
+                        style: TextStyle(color: constants.ivyGrey),
+                      )
+                    : null,
               ),
-              Center(
+            ),
+            Center(
+              child: qr.generateQr(user.uuid),
+            ),
+            Center(
+              child: RaisedButton(
+                color: constants.violet,
                 child: Text(
-                  partnerName,
-                  style: TextStyle(color: constants.ivyGrey),
+                  'パートナーと繋がる',
+                  style: TextStyle(color: Colors.white),
                 ),
-              ),
-              Center(
-                child: Container(
-                  padding: EdgeInsets.only(top: 30.0),
-                  child: userName != null
-                      ? Text(
-                          '$userNameのQRコード',
-                          style: TextStyle(color: constants.ivyGrey),
-                        )
-                      : null,
-                ),
-              ),
-              Center(
-                child: qr.generateQr(user.uuid),
-              ),
-              Center(
-                child: RaisedButton(
-                  color: constants.violet,
-                  child: Text(
-                    'パートナーと繋がる',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: () {
-                    qr.readQr().then((partnerId) {
-                      if (partnerId.isEmpty || partnerId == null) {
+                onPressed: () {
+                  qr.readQr().then((partnerId) {
+                    if (partnerId.isEmpty || partnerId == null) {
+                      showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              actions: <Widget>[
+                                FlatButton(
+                                    child: Text('パートナーのQRコードを読み込んでね'),
+                                    onPressed: () {
+                                      //push通知
+                                      postQrScannedNotification();
+                                      //更新した自分のパートナー情報をアプリに反映
+                                      fetchChangedUserInfo();
+                                      //ダイアログ閉じる
+                                      Navigator.pop(context, false);
+                                    }),
+                              ],
+                            );
+                          });
+                      return null;
+                    }
+                    /**
+                     * TODO: パートナー名取得
+                     */
+                    _userReference
+                        .document(partnerId)
+                        .snapshots()
+                        .forEach((snapshots) {
+                      if (!snapshots.exists) {
                         showDialog(
                             barrierDismissible: false,
                             context: context,
@@ -190,25 +218,47 @@ class _MyHomePageState extends State<MyHomePage>
                                 ],
                               );
                             });
-                        return null;
                       }
-                      /**
-                     * TODO: パートナー名取得
-                     */
-                      _userReference
-                          .document(partnerId)
-                          .snapshots()
-                          .forEach((snapshots) {
-                        if (!snapshots.exists) {
+
+                      Map<String, dynamic> data =
+                          Map<String, dynamic>.from(snapshots.data);
+                      store.savePartnerName(data[constants.userName]);
+
+                      //TODO: リファクタ
+                      //自分のパートナー情報更新
+                      _userReference.document(user.uuid).updateData({
+                        'hasPartner': true,
+                        'partnerId': partnerId
+                      }).whenComplete(() {
+                        //相手のパートナー情報更新
+                        _userReference.document(partnerId).updateData({
+                          'hasPartner': true,
+                          'partnerId': user.uuid
+                        }).whenComplete(() {
                           showDialog(
                               barrierDismissible: false,
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
+                                  title: Text(
+                                      data[constants.userName] + 'さんを見つけました！'),
                                   actions: <Widget>[
                                     FlatButton(
-                                        child: Text('パートナーのQRコードを読み込んでね'),
+                                        child: Text('繋がる'),
                                         onPressed: () {
+                                          //メニューバーのパートナー名反映
+                                          setState(() {
+                                            /**
+                                         *  TODO: パートナーIDをローカルストレージ保存
+                                         */
+                                            store.saveHasPartnerFlag(true);
+                                            store.savePartnerId(partnerId);
+                                            user.hasPartner = true;
+                                            user.partnerId = partnerId;
+                                            hasPartner = true;
+                                            partnerName =
+                                                data[constants.userName];
+                                          });
                                           //push通知
                                           postQrScannedNotification();
                                           //更新した自分のパートナー情報をアプリに反映
@@ -219,106 +269,46 @@ class _MyHomePageState extends State<MyHomePage>
                                   ],
                                 );
                               });
-                        }
-
-                        Map<String, dynamic> data =
-                            Map<String, dynamic>.from(snapshots.data);
-                        store.savePartnerName(data[constants.userName]);
-
-                        //TODO: リファクタ
-                        //自分のパートナー情報更新
-                        _userReference.document(user.uuid).updateData({
-                          'hasPartner': true,
-                          'partnerId': partnerId
-                        }).whenComplete(() {
-                          //相手のパートナー情報更新
-                          _userReference.document(partnerId).updateData({
-                            'hasPartner': true,
-                            'partnerId': user.uuid
-                          }).whenComplete(() {
-                            showDialog(
-                                barrierDismissible: false,
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: Text(data[constants.userName] +
-                                        'さんを見つけました！'),
-                                    actions: <Widget>[
-                                      FlatButton(
-                                          child: Text('繋がる'),
-                                          onPressed: () {
-                                            //メニューバーのパートナー名反映
-                                            setState(() {
-                                              /**
-                                         *  TODO: パートナーIDをローカルストレージ保存
-                                         */
-                                              store.saveHasPartnerFlag(true);
-                                              store.savePartnerId(partnerId);
-                                              user.hasPartner = true;
-                                              user.partnerId = partnerId;
-                                              hasPartner = true;
-                                              partnerName =
-                                                  data[constants.userName];
-                                            });
-                                            //push通知
-                                            postQrScannedNotification();
-                                            //更新した自分のパートナー情報をアプリに反映
-                                            fetchChangedUserInfo();
-                                            //ダイアログ閉じる
-                                            Navigator.pop(context, false);
-                                          }),
-                                    ],
-                                  );
-                                });
-                          });
                         });
                       });
                     });
-                  },
-                ),
+                  });
+                },
               ),
-            ],
-          ),
-        ),
-        floatingActionButton: Column(
-          verticalDirection: VerticalDirection.up, // childrenの先頭を下に配置
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            SizedBox(
-              height: 17,
-            ),
-            FloatingActionButton(
-              child: Icon(
-                Icons.add,
-                size: 30,
-                color: constants.violet,
-              ),
-              backgroundColor: constants.floatingButton,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OnegaiCreator()),
-                );
-              },
             ),
           ],
         ),
-        bottomSheet: TabBar(
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(
+          Icons.add,
+          size: 30,
+          color: constants.violet,
+        ),
+        elevation: 2.0,
+        backgroundColor: constants.floatingButton,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OnegaiCreator()),
+          );
+        },
+      ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.only(bottom: 44.0),
+        child: TabBar(
           tabs: tabs,
           labelStyle: TextStyle(color: constants.ivyGrey),
           controller: _tabController,
           unselectedLabelColor: Colors.grey,
-//        indicatorColor: constants.violet,
           indicatorSize: TabBarIndicatorSize.tab,
           indicatorWeight: 2,
           indicatorPadding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
           labelColor: Colors.black,
         ),
-
-        //タブ生成
-        bottomNavigationBar: SizedBox(
-          height: 47,
-        ));
+      ),
+    );
   }
 
   void _buildPushDialog(BuildContext context, Map<String, dynamic> message) {
@@ -497,6 +487,9 @@ class _MyHomePageState extends State<MyHomePage>
   Widget _buildListItem(BuildContext context, dynamic data, Key key) {
     final _onegai = OnegaiResponse.fromMap(data);
 
+    //自分へのお願いの場合は、期日当日にpush通知
+    if (key == Key('0')) if (isOnDue(_onegai)) sendDueNotification(_onegai);
+
     return Padding(
       key: ValueKey(_onegai.content),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -548,6 +541,53 @@ class _MyHomePageState extends State<MyHomePage>
     DateTime today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return DateTime(due.year, due.month, due.day).isBefore(today);
+  }
+
+  bool isOnDue(OnegaiResponse _onegai) {
+    DateTime today =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+    var due = _onegai.dueDate;
+    var createdAt = _onegai.createdAt;
+
+    if (DateTime(createdAt.year, createdAt.month, createdAt.day)
+        .isAtSameMomentAs(today)) return false;
+
+    return DateTime(due.year, due.month, due.day).isAtSameMomentAs(today);
+  }
+
+  void sendDueNotification(OnegaiResponse _onegai) async {
+    if (!_onegai.isDueNotificationPushed) return null;
+
+    var serverKey = constants.serverKey;
+    var onegai = _onegai.content;
+
+    final notification = {
+      "to": "/topics/" + user.uuid,
+      "notification": {"title": "$onegaiの期日が迫ってるよ！"},
+      "priority": 10,
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization': 'key=$serverKey'
+    };
+
+    final response = await http.post(
+      constants.url,
+      body: json.encode(notification),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      print("pushed notification successfully");
+
+      _onegaiReference
+          .document(_onegai.onegaiId)
+          .updateData({'isDueNotificationPushed': true});
+    } else {
+      print("failed push notification");
+    }
   }
 
   List<Map<String, dynamic>> sortByDate(List<DocumentSnapshot> list) {
