@@ -512,24 +512,47 @@ class _MyHomePageState extends State<MyHomePage>
           isOver: isOver(_onegai.dueDate),
           onChanged: (value) {
             setState(() {
-              Firestore.instance.runTransaction((transaction) async {
-                await transaction.update(
-                    _onegaiReference.document(_onegai.onegaiId),
-                    {'status': true}).then((value) {
-                  Timer(Duration(milliseconds: 750), () {
-                    _onegaiReference
-                        .document(_onegai.onegaiId)
-                        .delete()
-                        .then((value) {
-                      if (key == Key('0'))
-                        sendCompleteNotification(_onegai.content);
-                      print("deleted");
-                    }).catchError((error) {
-                      print(error);
-                    });
-                  });
-                });
-              });
+              //完了前に確認を求めるダイアログ
+              showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                        content: ListTile(
+                          title: Text('お願いを完了しましたか？'),
+                        ),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text('NO'),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          FlatButton(
+                            child: Text('YES'),
+                            onPressed: () {
+                              Firestore.instance
+                                  .runTransaction((transaction) async {
+                                Navigator.of(context).pop();
+
+                                await transaction.update(
+                                    _onegaiReference.document(_onegai.onegaiId),
+                                    {'status': true}).then((value) {
+                                  Timer(Duration(milliseconds: 750), () {
+                                    _onegaiReference
+                                        .document(_onegai.onegaiId)
+                                        .delete()
+                                        .then((value) {
+                                      if (key == Key('0'))
+                                        sendCompleteNotification(
+                                            _onegai.content);
+                                      print("deleted");
+                                    }).catchError((error) {
+                                      print(error);
+                                    });
+                                  });
+                                });
+                              });
+                            },
+                          )
+                        ],
+                      ));
             });
           },
         ),
