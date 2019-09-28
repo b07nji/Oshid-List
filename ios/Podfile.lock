@@ -143,7 +143,7 @@ DEPENDENCIES:
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  https://github.com/CocoaPods/Specs.git:
     - BoringSSL-GRPC
     - Firebase
     - FirebaseAnalytics
@@ -182,11 +182,11 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   barcode_scan: 33f586d02270046fc6559135038b34b5754eaa4f
   BoringSSL-GRPC: db8764df3204ccea016e1c8dd15d9a9ad63ff318
-  cloud_firestore: 8b7ac37721855b8bfb62df8ef2a236509bd6bcee
+  cloud_firestore: 0ac494d23db743f104b95d3291946afec187b74c
   Firebase: 5965bac23e7fcb5fa6d926ed429c9ecef8a2014e
   firebase_admob: d8c2bc95b5e0069406280ce6adb816cdee6aa595
   firebase_core: ae55ea92448ec8675d325da4db22cf3b4d58a54d
-  firebase_messaging: 74e9d76acfbdff96a3f9f570f463a2b2bc784bf5
+  firebase_messaging: 0d5c04cc40f58bd4bf7f2992c91050f9bc01bec3
   FirebaseAnalytics: 629301c2b9925f3537d4093a17a72751ae5b7084
   FirebaseAnalyticsInterop: efbe45c8385ec626e29f9525e5ebd38520dfb6c1
   FirebaseAuthInterop: 0ffa57668be100582bb7643d4fcb7615496c41fc
@@ -194,7 +194,7 @@ SPEC CHECKSUMS:
   FirebaseFirestore: d9c55dfd0cd648f420cc8340c4940dc3eab2d860
   FirebaseInstanceID: cdb3827746d53ece7ae87a5c51c25c3055443366
   FirebaseMessaging: 20b6626c41be7840aed7a3dd9a14003efae3d588
-  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   Google-Mobile-Ads-SDK: 1e72b4f438d997ab0f2ee62b3a7b0cbcc87c47cb
   GoogleAppMeasurement: 51d8d9ea48f0ca44484d29cfbdef976fbd4fc336
   GoogleUtilities: 996e0db07153674fd1b54b220fda3a3dc3547cba
@@ -208,4 +208,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 7fb83752f59ead6285236625b82473f90b1cb932
 
-COCOAPODS: 1.7.1
+COCOAPODS: 1.8.0
