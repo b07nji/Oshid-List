@@ -93,7 +93,8 @@ class _LoginPageState extends State<LoginPage> {
                                 'uuid': user.uuid,
                                 'userName': user.userName,
                                 'hasPartner': user.hasPartner,
-                                'partnerId': user.partnerId
+                                'partnerId': user.partnerId,
+                                'createdAt': DateTime.now().toIso8601String()
                               }).whenComplete(() {
                                 //3. add to preference. if no sentence below here, can't relate user with onegai
                                 store.saveUserInfo(user.uuid, user.userName);
