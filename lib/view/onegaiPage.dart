@@ -63,7 +63,7 @@ class OnegaiFormState extends State<OnegaiForm> {
       preferences = pref;
       setState(() {
         initUserInfo();
-        initFCM();
+//        initFCM();
       });
     });
   }
@@ -309,35 +309,36 @@ class OnegaiFormState extends State<OnegaiForm> {
               ],
             ));
   }
-
-  void initFCM() {
-    //FCM設定
-    _firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        print("onMessage: $message");
-        _buildPushDialog(context, message);
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        print("onLaunch: $message");
-        _buildPushDialog(context, message);
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print("onResume: $message");
-        _buildPushDialog(context, message);
-      },
-    );
-    _firebaseMessaging.requestNotificationPermissions(
-        const IosNotificationSettings(sound: true, badge: true, alert: true));
-    _firebaseMessaging.onIosSettingsRegistered
-        .listen((IosNotificationSettings settings) {
-      print("Settings registered: $settings");
-    });
-    _firebaseMessaging.getToken().then((String token) {
-      assert(token != null);
-      print("Push Messaging token: $token");
-    });
-    _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
-  }
+//home.dartで初期化しているので不要
+//エラーがなければ削除
+//  void initFCM() {
+//    //FCM設定
+//    _firebaseMessaging.configure(
+//      onMessage: (Map<String, dynamic> message) async {
+//        print("onMessage: $message");
+//        _buildPushDialog(context, message);
+//      },
+//      onLaunch: (Map<String, dynamic> message) async {
+//        print("onLaunch: $message");
+//        _buildPushDialog(context, message);
+//      },
+//      onResume: (Map<String, dynamic> message) async {
+//        print("onResume: $message");
+//        _buildPushDialog(context, message);
+//      },
+//    );
+//    _firebaseMessaging.requestNotificationPermissions(
+//        const IosNotificationSettings(sound: true, badge: true, alert: true));
+//    _firebaseMessaging.onIosSettingsRegistered
+//        .listen((IosNotificationSettings settings) {
+//      print("Settings registered: $settings");
+//    });
+//    _firebaseMessaging.getToken().then((String token) {
+//      assert(token != null);
+//      print("Push Messaging token: $token");
+//    });
+//    _firebaseMessaging.subscribeToTopic("/topics/" + user.uuid);
+//  }
 
   void postAddOnegaiNotification(String onegai) async {
     var serverKey = constants.serverKey;
